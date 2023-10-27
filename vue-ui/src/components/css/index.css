@@ -1,0 +1,296 @@
+@charset "utf-8";
+/* CSS Document */
+header {
+    position: relative;
+    width: 100%;
+    height: 130px;
+    margin: 0 auto;
+    background-color: white;
+}
+/* 头部的视频背景 */
+header video {
+    width: 100%;
+    height: 100%;
+    /* 发现视频上下有缝隙(父容器的颜色) */
+    /* 代表没有铺满该容器 */
+    /* 使video标签铺满父容器 */
+    object-fit: fill;
+}
+header img {
+    width: 100%;
+    height: 100%;
+    /* 发现视频上下有缝隙(父容器的颜色) */
+    /* 代表没有铺满该容器 */
+    /* 使video标签铺满父容器 */
+    object-fit: fill;
+}
+/* 头部左侧的导航 */
+header nav {
+    position: absolute;
+    top: 0;
+    /*块级元素添加绝对定位以后,宽度会从默认的百分百变成由内容撑开 默认是0 记得设置宽度 */
+    width: 100%;
+    height: 60px;
+/*    padding: 0 20px;*/
+    /* background-color: rgb(182, 62, 134); */
+}
+/* header .nav-left ul li {
+    float: left;
+    height: 60px;
+    line-height: 60px;
+    padding: 0 7px;
+    color: #fff;
+    cursor: pointer;
+} */
+
+
+
+
+
+
+/* 下载客户端 */
+header .download {
+    float: left;
+    height: 60px;
+    line-height: 60px;
+    margin-left: 10px;
+}
+
+header .download a {
+    /* color: #fff; */
+}
+
+header .download a::before {
+    /* content: '\e61a'; */
+    font-family: "iconfont" !important;
+    font-size: 18px !important;
+}
+
+/* 搜索框 */
+header .search {
+    float: left;
+/*    width: 315px;*/
+	width: 315px;
+    height: 40px;
+    border-radius: 10px;
+    background-color: rgb(255, 255, 255, .3);
+    margin-left: 15px;
+    margin-top: 10px;
+    border: 1px solid #f3f4f5;
+}
+
+header .search:hover {
+    background-color: rgb(255, 255, 255, .7);
+}
+
+header .search input {
+    width: 250px;
+    height: 40px;
+    padding-left: 20px;
+    /* 清除输入框的轮廓线 */
+    outline: none;
+    /* 清除输入框的边框线 */
+    border: none;
+    background-color: transparent;
+}
+
+header .search input::placeholder {
+    color: #333;
+}
+
+header .search::after {
+    float: right;
+    /* content: el-icon-error; */
+    font-family: "iconfont" !important;
+    font-size: 20px !important;
+    margin-right: 10px;
+    line-height: 40px;
+    color: #fff;
+}
+
+/* 登录模块 */
+header .login {
+    float: left;
+    width: 36px;
+    height: 36px;
+    background-color: #fff;
+    border-radius: 50%;
+    margin-top: 12px;
+    margin-left: 850px;
+}
+
+header .login a {
+    display: block;
+    color: #0eb2ec;
+    font-size: 12px;
+    line-height: 36px;
+    text-align: center;
+}
+header .login img {
+    display: block;
+    color: #0eb2ec;
+    font-size: 12px;
+    line-height: 36px;
+    text-align: center;
+	border-radius: 50%;
+	overflow: hidden;
+}
+
+/* 用户功能 */
+header .userFunction {
+    float: left;
+    height: 60px;
+    margin-left: 15px;
+    padding-top: 12px;
+}
+
+header .userFunction em {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 2px;
+    color: #fff;
+
+}
+
+header .userFunction li {
+    float: left;
+    padding: 0 5px;
+    text-align: center;
+}
+
+header .userFunction li i {
+    color: #fff;
+    font-size: 12px;
+}
+
+header .userFunction li em {
+    position: relative;
+    top: 0;
+    display: block;
+    font-size: 18px !important;
+    transition: all 0.3s;
+}
+
+header .userFunction li:hover em {
+    top: -5px;
+}
+
+/* 投稿上传 */
+header .upload {
+    float: left;
+    width: 120px;
+    height: 34px;
+    margin-left: 20px;
+    margin-top: 12px;
+}
+
+header .upload a {
+    display: block;
+    text-align: center;
+    color: #fff;
+    background-color: #fb7299;
+    line-height: 34px;
+    width: 120px;
+    height: 34px;
+    border-radius: 10px;
+}
+
+header .upload a::before {
+    /* content: '\e671'; */
+    font-family: "iconfont" !important;
+    font-size: 18px !important;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+/* logo效果 */
+header .logo {
+    position: absolute;
+    bottom: 10px;
+    left: 40px;
+    width: 130px;
+    height: 60px;
+    /* background-color: pink; */
+    opacity: .7;
+}
+
+header .logo img {
+    width: 100%;
+    height: 100%;
+}
+
+
+.board {
+    width: 548px;
+    height: 468px;
+    display: inline-block;
+    overflow: hidden;
+
+}
+
+
+.board_div {
+    width: 4932px;
+    height: 438px;
+    animation: text 15s infinite backwards;
+    /*消除图片间隔*/
+    margin-bottom: 10px;
+
+}
+
+.board_div img {
+    width: 548px;
+    height: 373px;
+    float: left;
+
+}
+
+@keyframes text {
+
+    /*0%-20%是播放下一个图片，0%-10%是图片暂停的时间*/
+    0%,
+    8% {
+        margin-left: 0px;
+    }
+
+    10%,
+    18% {
+        margin-left: -548px;
+    }
+
+    20%,
+    28% {
+        margin-left: -1096px;
+    }
+
+    30%,
+    38% {
+        margin-left: -1644px;
+    }
+
+    40%,
+    48% {
+        margin-left: -2192px;
+    }
+
+    50%,
+    58% {
+        margin-left: -2740px;
+    }
+
+    60%,
+    68% {
+        margin-left: -3288px;
+    }
+
+    70%,
+    78% {
+        margin-left: -3836px;
+    }
+
+    80%,
+    100% {
+        margin-left: -4384px;
+    }
+
+}
