@@ -7,14 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HomeworkMember {
+public class EvaluationStat {
 
-    private int hwID;
     private int uID;
-    private boolean isSubmit;
-    private String content;
-    private int cID;
-    private Integer score;
-    private String comment;
+    private int evaluateNum;
+    private int score;
+    private int hwID;
+    private int evaluatedNum;
 
 }

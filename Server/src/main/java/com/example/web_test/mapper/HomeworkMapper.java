@@ -24,12 +24,11 @@ public interface HomeworkMapper {
     @Select("select * from homework where creatorID=#{uID}")
     List<Homework> listHomework(int uID);
 
-    @Update("update homework set isPublish=true, ddl=#{ddl}, content=#{content}, hwName=#{name} where hwID=#{hwID}")
-    void publish(int hwID, LocalDateTime ddl, String content, String name);
+    @Update("update homework set isPublish=true, ddl=#{ddl}, content=#{content}, hwName=#{name}, score=#{score}, cID=#{cID} where hwID=#{hwID}")
+    void publish(int hwID, LocalDateTime ddl, String content, String name, int score, int cID);
 
     @Insert("insert into homework_member(hwID, uID, cID) values(#{hwID}, #{uid}, #{cID})")
     void addHomework(int uid, int hwID, int cID);
-
 
     List<HomeworkMember> getMyHomework(int uID, Integer cID);
 
@@ -41,4 +40,22 @@ public interface HomeworkMapper {
 
     @Update("update homework_member set isSubmit=true, content=#{content} where uID=#{uID} and hwID=#{hwID}")
     void submitHomework(int uID, int hwID, String content);
+
+    @Select("select * from homework_member where hwID=#{hwID}")
+    List<HomeworkMember> getStudentHomeworks(int hwID);
+
+    @Select("select count(*) from homework_member where hwID=#{hwID}")
+    Integer getHomeworkMemberNum(int hwID);
+
+    @Select("select count(*) from homework_member where hwID=#{hwID} and isSubmit=true")
+    Integer getSubmitNum(int hwID);
+
+    @Select("select * from homework_member where hwID=#{hwID} and isSubmit=true")
+    List<HomeworkMember> getSubmitHomeworks(int hwID);
+
+    @Select("select * from homework_member where hwID=#{hwID} and isSubmit=false")
+    List<HomeworkMember> getAbsent(int hwID);
+
+    @Update("update homework_member set score=#{score}, comment=#{comment} where uID=#{sID} and hwID=#{hwID}")
+    void mark(int sID, int hwID, int score, String comment);
 }

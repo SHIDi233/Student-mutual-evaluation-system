@@ -67,7 +67,7 @@ public class HomeworkController {
     }
 
     //获取创建的作业列表
-    @GetMapping("/listHomework")
+    @PostMapping("/listHomework")
     public Result listHomework(HttpServletRequest request) {
         int uID;
         String jwt = request.getHeader("token");
@@ -86,6 +86,7 @@ public class HomeworkController {
         uID = (int) claims.get("ID");
 
         int hwID = Integer.parseInt((String) map.get("hwID"));
+        int score = Integer.parseInt((String) map.get("score"));
 //        System.out.println(map.get("classes"));
         String classesString = (String) map.get("classes");
         String[] classesStrs = classesString.split(",");
@@ -98,7 +99,7 @@ public class HomeworkController {
         String name = (String) map.get("name");
         LocalDateTime ddl = LocalDateTime.parse(ddls, DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
 
-        int res = homeworkServer.publishHomework(uID, hwID, classes, ddl, content, name);
+        int res = homeworkServer.publishHomework(uID, hwID, classes, ddl, content, name, score);
         if(res == -1) { return Result.error("找不到该作业"); }
         if(res == -2) { return Result.error("您没有执行此操作的权限"); }
         if(res == -3) { return Result.error("班级错误"); }
@@ -180,6 +181,68 @@ public class HomeworkController {
         return Result.success(filePath);
     }
 
+    //获取学生提交的作业
+    @PostMapping("/listStudentHomeworks")
+    public Result getStudentHomeworks(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
 
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+
+        List<Map<String, Object>> res = homeworkServer.getStudentHomeworks(uID, hwID);
+        return Result.success(res);
+    }
+
+    @PostMapping("/getStudentHomework")
+    public Result getStudentHomework(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        int sID = Integer.parseInt(request.getParameter("sID"));
+
+        Map<String, Object> res = homeworkServer.getStudentHomework(uID, hwID, sID);
+        return Result.success(res);
+    }
+
+    //获取作业提交人数
+    @PostMapping("/getSubmitNum")
+    public Result getSubmitNum(HttpServletRequest request) {
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        Map<String, Object> res = homeworkServer.getSubmitNum(hwID);
+        return Result.success(res);
+    }
+
+    //获取未提交作业的人
+    @PostMapping("/getAbsent")
+    public Result getAbsent(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        List<Map<String, Object>> res = homeworkServer.getAbsent(uID, hwID);
+        return Result.success(res);
+    }
+
+    //老师批改作业
+    @PostMapping("/mark")
+    public Result mark(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        int sID = Integer.parseInt(request.getParameter("sID"));
+        int score = Integer.parseInt(request.getParameter("score"));
+        String comment = request.getParameter("comment");
+        homeworkServer.mark(uID, hwID, sID, score, comment);
+        return null;
+    }
 
 }

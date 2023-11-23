@@ -4,17 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HomeworkMember {
+public class Evaluation {
 
+    private int eID;
     private int hwID;
-    private int uID;
-    private boolean isSubmit;
-    private String content;
-    private int cID;
-    private Integer score;
-    private String comment;
+    private LocalDateTime ddl;
+    private LocalDateTime cTime;
 
 }

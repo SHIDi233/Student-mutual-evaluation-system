@@ -19,5 +19,8 @@ public class Homework {
     private boolean isPublish;
     private String hwName;
     private int creatorID;
+    private boolean isStartEva;
+    private int score;
+    private int cID;
 
 }
