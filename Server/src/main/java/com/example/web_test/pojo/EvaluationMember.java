@@ -15,5 +15,6 @@ public class EvaluationMember {
     private String comment;
     private int desID;
     private int hwID;
+    private String image;
 
 }

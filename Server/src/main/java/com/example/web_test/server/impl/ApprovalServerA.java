@@ -240,4 +240,17 @@ public class ApprovalServerA implements ApprovalServer {
         m.put("noteID", notation.getID());
         return m;
     }
+
+    @Override
+    public int getUnread(int uID) {
+        return notationMapper.getUnread(uID);
+    }
+
+    @Override
+    public String readNotation(int uID, int nID) {
+        Notation notation = notationMapper.readNotation(uID, nID);
+        if(notation == null) { return ""; }
+        notationMapper.setRead(nID);
+        return notation.getContent();
+    }
 }

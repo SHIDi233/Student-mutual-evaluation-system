@@ -38,7 +38,8 @@ public class EvaluationServerA implements EvaluationServer {
 //            return -2; //互评已经开始
 //        }
         if (LocalDateTime.now().isBefore(homework.getDdl())) {
-            return -3; //作业未截止前无法开启互评
+            //让作业截止
+            homeworkMapper.ddl(hwID);
         }
         if (ddl.isBefore(LocalDateTime.now())) {
             return -4; //时间设置错误
@@ -123,7 +124,7 @@ public class EvaluationServerA implements EvaluationServer {
     }
 
     @Override
-    public int evaluate(int uID, int eID, int score, String comment) {
+    public int evaluate(int uID, int eID, int score, String comment, String image) {
         EvaluationMember evaluationMember = evaluationMapper.getEvaluationMember2(eID, uID);
         if(evaluationMember == null) { return -1; }
         if(evaluationMember.getScore() == null) {
@@ -132,7 +133,10 @@ public class EvaluationServerA implements EvaluationServer {
         }
         evaluationMember.setScore(score);
         evaluationMember.setComment(comment);
+        evaluationMember.setImage(image);
         evaluationMapper.evaluate(evaluationMember);
+        //计算分数
+        calculateScore(evaluationMember.getHwID());
         return 0;
     }
 
@@ -141,6 +145,34 @@ public class EvaluationServerA implements EvaluationServer {
         Homework homework = homeworkMapper.getHomework(hwID);
         User user = userMapper.getUser(uID);
         if (homework == null || uID != homework.getCreatorID()) {
+            return -1; //无权执行此操作
+        }
+        if(!homework.isStartEva()) {
+            return -2; //还未进行互评
+        }
+        List<EvaluationStat> evaluationStats = evaluationMapper.listEvaluations(hwID);
+        for(EvaluationStat evaluationStat : evaluationStats) {
+            //获取所有互评结果
+            List<EvaluationMember> evaluationMemberList = evaluationMapper.getEvaluationResult(evaluationStat.getUID(), hwID);
+            int sum = 0;
+            for(EvaluationMember e : evaluationMemberList) {
+                sum += e.getScore();
+            }
+            int score = 0;
+            if(evaluationMemberList.size() != 0) {
+                score = sum / evaluationMemberList.size();
+            }
+            //放入数据库
+            evaluationMapper.setScore(evaluationStat.getUID(), score, hwID);
+        }
+        return 0;
+    }
+
+    //自动计算分数
+    public int calculateScore(int hwID) {
+        Homework homework = homeworkMapper.getHomework(hwID);
+//        User user = userMapper.getUser(uID);
+        if (homework == null) {
             return -1; //无权执行此操作
         }
         if(!homework.isStartEva()) {
@@ -182,6 +214,42 @@ public class EvaluationServerA implements EvaluationServer {
             m.put("score", evaluationStat.getScore());
             res.add(m);
         }
+        return res;
+    }
+
+    @Override
+    public List<Map<String, Object>> getEvaluatedMember(int uID, int hwID, int sID) {
+        List<Map<String, Object>> res = new ArrayList<>();
+        Homework homework = homeworkMapper.getHomework(hwID);
+
+        //判断是否有权限
+        if(homework == null || homework.getCreatorID() != uID) { return res; }
+
+        List<EvaluationMember> evaluatedMembers = evaluationMapper.getEvaluatedMember(hwID, sID);
+        for(EvaluationMember evaluationMember : evaluatedMembers) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("eID", evaluationMember.getEID());
+            m.put("uID", evaluationMember.getUID());
+            User user = userMapper.getUser(evaluationMember.getUID());
+            m.put("header", user.getHead());
+            m.put("name", user.getName());
+            m.put("score", evaluationMember.getScore());
+            res.add(m);
+        }
+        return res;
+    }
+
+    @Override
+    public Map<String, Object> getEvaluationResult(int uID, int eID) {
+        EvaluationMember evaluationMember = evaluationMapper.getEvaluationMember3(eID);
+        Map<String, Object> res = new HashMap<>();
+        int hwID = evaluationMember.getHwID();
+        int desID = evaluationMember.getDesID();
+        HomeworkMember homeworkStu = homeworkMapper.getHomework_stu(desID, hwID);
+        res.put("content", homeworkStu.getContent());
+        res.put("comment", evaluationMember.getComment());
+        res.put("score", evaluationMember.getScore());
+        res.put("image", evaluationMember.getImage());
         return res;
     }
 }

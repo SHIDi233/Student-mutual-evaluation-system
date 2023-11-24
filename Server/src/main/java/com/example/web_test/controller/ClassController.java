@@ -2,17 +2,25 @@ package com.example.web_test.controller;
 
 import com.example.web_test.pojo.Result;
 import com.example.web_test.server.ClassServer;
+import com.example.web_test.utils.ExcelData;
+import com.example.web_test.utils.ExcelUtils;
 import com.example.web_test.utils.JwtUtils;
+import com.example.web_test.utils.OBSUtils;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -132,5 +140,21 @@ public class ClassController {
         Claims claims = JwtUtils.parseJWT(jwt);
         uID = (int) claims.get("ID");
         return null;
+    }
+
+    @PostMapping("/uploadXls")
+    public Result uploadXls(HttpServletRequest request) throws IOException {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int cID = Integer.parseInt(request.getHeader("cID"));
+        //获取文件
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        MultipartFile file = multipartRequest.getFile("file");
+        assert file != null;
+        List<ExcelData> dataList = ExcelUtils.readExcel(file.getInputStream());
+        List<String> res = classServer.importMember(uID, cID, dataList);
+        return Result.success(res);
     }
 }

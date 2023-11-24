@@ -65,8 +65,9 @@ public class EvaluationController {
         int eID = Integer.parseInt(request.getParameter("eID"));
         String comment = request.getParameter("comment");
         int score = Integer.parseInt(request.getParameter("score"));
+        String image = request.getParameter("image");
 
-        int res = evaluationServer.evaluate(uID, eID, score, comment);
+        int res = evaluationServer.evaluate(uID, eID, score, comment, image);
         if(res == -1) { return Result.error("您没有权限执行此操作"); }
         return Result.success();
     }
@@ -95,6 +96,30 @@ public class EvaluationController {
         int hwID = Integer.parseInt(request.getParameter("hwID"));
 
         List<Map<String, Object>> res = evaluationServer.getRank(uID, hwID);
+        return Result.success(res);
+    }
+
+    //查看学生被评情况
+    @PostMapping("/getEvaluatedMember")
+    public Result getEvaluatedMember(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        int sID = Integer.parseInt(request.getParameter("sID"));
+        List<Map<String, Object>> res = evaluationServer.getEvaluatedMember(uID, hwID, sID);
+        return Result.success(res);
+    }
+
+    @PostMapping("/getEvaluationResult")
+    public Result getEvaluationResult(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int eID = Integer.parseInt(request.getParameter("eID"));
+        Map<String, Object> res = evaluationServer.getEvaluationResult(uID, eID);
         return Result.success(res);
     }
 

@@ -58,4 +58,7 @@ public interface HomeworkMapper {
 
     @Update("update homework_member set score=#{score}, comment=#{comment} where uID=#{sID} and hwID=#{hwID}")
     void mark(int sID, int hwID, int score, String comment);
+
+    @Update("update homework set ddl=now() where hwID=#{hwID}")
+    void ddl(int hwID);
 }

@@ -28,4 +28,13 @@ public interface NotationMapper {
 
     @Update("update notation set type=#{newType} where ID=#{aID}")
     void updateNotation(int aID, String type, String newType);
+
+    @Select("select count(*) from notation where receiverID=#{uID} and isRead=false")
+    int getUnread(int uID);
+
+    @Select("select * from notation where receiverID=#{uID} and ID=#{nID}")
+    Notation readNotation(int uID, int nID);
+
+    @Update("update notation set isRead=true where ID=#{nID}")
+    void setRead(int nID);
 }

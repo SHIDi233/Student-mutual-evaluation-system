@@ -174,7 +174,12 @@ public class HomeworkController {
         assert file != null;
         String originalFileName = file.getOriginalFilename();
         assert originalFileName != null;
-        String newFileName = UUID.randomUUID().toString() + originalFileName.substring(originalFileName.lastIndexOf("."));
+        String newFileName;
+        if(originalFileName.contains(".")) {
+            newFileName = UUID.randomUUID().toString() + originalFileName.substring(originalFileName.lastIndexOf("."));
+        } else {
+            newFileName = UUID.randomUUID().toString();
+        }
         file.transferTo(new File("D:/vue/source/" + newFileName));
         String filePath = OBSUtils.uploadFile(new File("D:/vue/source/" + newFileName), newFileName);
 //        loginServer.setHeader(uID, filePath);

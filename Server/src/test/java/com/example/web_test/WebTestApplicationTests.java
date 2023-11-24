@@ -3,6 +3,8 @@ package com.example.web_test;
 import com.example.web_test.mapper.UserMapper;
 import com.example.web_test.pojo.User;
 import com.example.web_test.utils.EncodeUtils;
+import com.example.web_test.utils.ExcelData;
+import com.example.web_test.utils.ExcelUtils;
 import com.example.web_test.utils.JGitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -16,7 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -127,5 +133,13 @@ class WebTestApplicationTests {
     public void getBranch() {
 //        List<String> branches = JGitUtils.getBranches("D:\\jgitTest\\test1");
 //        System.out.println(branches);
+    }
+
+    @Test
+    public void excelTest() throws IOException {
+        List<ExcelData> excelData = ExcelUtils.readExcel(Files.newInputStream(Paths.get("C:\\Users\\HP\\Desktop\\软件学院抽象工作室-OwlSystem\\test.xls")));
+        for (ExcelData data : excelData) {
+            System.out.println(data.getName() + " " + data.getID());
+        }
     }
 }

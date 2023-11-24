@@ -42,7 +42,7 @@ public interface EvaluationMapper {
     @Select("select * from evaluation_member where eID=#{eID} and uID=#{uID}")
     EvaluationMember getEvaluationMember2(int eID, int uID);
 
-    @Update("update evaluation_member set score=#{score}, comment=#{comment} where eID=#{eID}")
+    @Update("update evaluation_member set score=#{score}, comment=#{comment}, image=#{image} where eID=#{eID}")
     void evaluate(EvaluationMember evaluationMember);
 
     @Select("select * from evaluation_member where uID=#{uID} and hwID=#{hwID} and (score is null)")
@@ -62,4 +62,10 @@ public interface EvaluationMapper {
 
     @Update("update evaluationstat set evaluatedNum=evaluatedNum+1 where uID=#{desID} and hwID=#{hwID}")
     void addEvaluatedNum(int desID, int hwID);
+
+    @Select("select * from evaluation_member where hwID=#{hwID} and desID=#{sID}")
+    List<EvaluationMember> getEvaluatedMember(int hwID, int sID);
+
+    @Select("select * from evaluation_member where eID=#{eID}")
+    EvaluationMember getEvaluationMember3(int eID);
 }
