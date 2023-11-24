@@ -6,6 +6,7 @@ import com.example.web_test.server.ApprovalServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Component
@@ -113,7 +114,7 @@ public class ApprovalServerA implements ApprovalServer {
             m.put("scope", n.getScope());
             m.put("content", n.getContent());
             m.put("type", n.getType());
-            m.put("time", n.getSendTime());
+            m.put("time", n.getSendTime().format(DateTimeFormatter.ISO_DATE_TIME));
             m.put("isRead", n.isRead());
             m.put("noteID", n.getID());
             res.add(m);
@@ -238,5 +239,18 @@ public class ApprovalServerA implements ApprovalServer {
         m.put("isRead", notation.isRead());
         m.put("noteID", notation.getID());
         return m;
+    }
+
+    @Override
+    public int getUnread(int uID) {
+        return notationMapper.getUnread(uID);
+    }
+
+    @Override
+    public String readNotation(int uID, int nID) {
+        Notation notation = notationMapper.readNotation(uID, nID);
+        if(notation == null) { return ""; }
+        notationMapper.setRead(nID);
+        return notation.getContent();
     }
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.web_test.mapper.HomeworkMapper">
+    <select id="getMyHomework" resultType="com.example.web_test.pojo.HomeworkMember">
+        select *
+        from homework_member
+        where
+        uID = #{uID}
+        <if test="cID != null">
+            and cID = #{cID}
+        </if>
+    </select>
+</mapper>

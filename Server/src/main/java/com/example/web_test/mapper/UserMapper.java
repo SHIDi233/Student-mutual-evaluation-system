@@ -9,8 +9,8 @@ import java.util.List;
 @Mapper
 public interface UserMapper {
 
-    @Select("select * from User where mail = #{mail} and password = #{password}")
-    public List<User> login(String mail, String password);
+    @Select("select * from User where mail = #{mail}")
+    public List<User> login(String mail);
 
     @Select("select * from User where mail = #{mail}")
     public List<User> getUsers(String mail);

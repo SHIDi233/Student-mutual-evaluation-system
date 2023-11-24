@@ -113,4 +113,22 @@ public class ApprovalController {
         return Result.success(res);
     }
 
+    @PostMapping("/getUnread")
+    public Result getUnread(HttpServletRequest request) {
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        int uID = (int) claims.get("ID");
+        return Result.success(approvalServer.getUnread(uID));
+    }
+
+    @PostMapping("/readNotation")
+    public Result readNotation(HttpServletRequest request) {
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        int uID = (int) claims.get("ID");
+        int nID = Integer.parseInt(request.getParameter("nID"));
+        String res = approvalServer.readNotation(uID, nID);
+        return Result.success(res);
+    }
+
 }

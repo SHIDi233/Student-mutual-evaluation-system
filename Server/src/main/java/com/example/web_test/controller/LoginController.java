@@ -24,21 +24,44 @@ public class LoginController {
     @Autowired
     private LoginServer loginServer;
 
+    /**
+     * 登录功能
+     * @param mail 邮箱
+     * @param password 密码
+     * @return 登录成功：token
+     *         登录失败：失败原因
+     */
     @PostMapping("/login")
     @CrossOrigin
     public Result login(String mail, String password) {
         System.out.println(mail + "," + password);
-        List<User> users = loginServer.login(mail, password);
-        if(users.size() != 0) {
+        User user = loginServer.login(mail, password);
+        if(user != null) {
             Map<String, Object> claims = new HashMap<>();
             claims.put("mail", mail);
-            claims.put("ID", users.get(0).getID());
+            claims.put("ID", user.getID());
             String jwt = JwtUtils.generateJwt(claims);
-            log.info("用户:" + users.get(0).getMail() + "，ID:" + users.get(0).getID() + "登录成功");
+            log.info("用户:" + user.getMail() + "，ID:" + user.getID() + "登录成功");
             return Result.success(jwt);
         }
         log.info("用户尝试登录失败，邮箱为:" + mail);
         return Result.error("login fail");
+    }
+
+    /**
+     * 获取本人的角色
+     * @return 0：学生
+     *         1：老师
+     */
+    @GetMapping("/getRole")
+    public Result getRole(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+
+        int res = loginServer.getRole(uID);
+        return Result.success(res);
     }
 
 //    @PostMapping("/login")
@@ -84,6 +107,15 @@ public class LoginController {
 
     }
 
+    /**
+     * 认证学校与学号
+     * majority：专业
+     * school：学校
+     * introduction：个人简介
+     * studentID：学号
+     * @return 成功：认证成功信息
+     *         失败：失败原因
+     */
     @PostMapping("/modify")
     @CrossOrigin
     public Result change(HttpServletRequest request) {
@@ -96,10 +128,12 @@ public class LoginController {
         String introduction = request.getParameter("introduction");
         String studentID = request.getParameter("studentID");
         int res = loginServer.perfect(uID, school, majority, introduction, studentID);
-        if(res != 0) { return Result.error("学校学号认证失败"); }
+        if(res == -1) { return Result.error("学校学号认证失败"); }
+        if(res == -2) { return Result.error("请输入学校与学号"); }
         return Result.success();
     }
 
+    //通过token获取头像url
     @PostMapping("/header")
     @CrossOrigin
     public Result header(HttpServletRequest request) {
@@ -111,6 +145,7 @@ public class LoginController {
         return Result.success(res);
     }
 
+    //通过表单方式获取头像
     @PostMapping("/getHeader")
     @CrossOrigin
     public Result getHeader(int uID) {
@@ -118,6 +153,7 @@ public class LoginController {
         return Result.success(res);
     }
 
+    //获取个人信息
     @PostMapping("/getInfo")
     @CrossOrigin
     public Result getInfo(int uID) {

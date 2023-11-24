@@ -3,11 +3,9 @@ package com.example.web_test.server.impl;
 import com.example.web_test.mapper.ClassMapper;
 import com.example.web_test.mapper.NotationMapper;
 import com.example.web_test.mapper.UserMapper;
-import com.example.web_test.pojo.ClassApproval;
-import com.example.web_test.pojo.Classes;
-import com.example.web_test.pojo.Notation;
-import com.example.web_test.pojo.User;
+import com.example.web_test.pojo.*;
 import com.example.web_test.server.ClassServer;
+import com.example.web_test.utils.ExcelData;
 import com.example.web_test.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,10 +32,12 @@ public class ClassServerA implements ClassServer {
         List<Classes> classes = classMapper.list(ID);
         List<Map<String, Object>> res = new ArrayList<>();
         for(Classes c : classes) {
+            int role = classMapper.getRole(ID, c.getClassID());
             Map<String, Object> m = new HashMap<>();
             m.put("classID", c.getClassID());
             m.put("className", c.getClassName());
             m.put("introduction", c.getIntroduction());
+            m.put("role", role);
             res.add(m);
         }
         return res;
@@ -69,6 +69,8 @@ public class ClassServerA implements ClassServer {
         //获取班级
         Classes c = classMapper.getClasses(cID);
         if(c == null) { return 1; }
+        //查看是否已经在班级中
+        if(classMapper.getRole(uID, cID) != null) { return -2; }
         //创建审批
         ClassApproval classApproval = new ClassApproval();
         classApproval.setSenderID(uID);
@@ -103,6 +105,7 @@ public class ClassServerA implements ClassServer {
             m.put("name", user.getName());
             m.put("studentID", user.getStudentID());
             m.put("uID", user.getID());
+            m.put("role", user.getRole());
             res.add(m);
         }
         return res;
@@ -151,7 +154,41 @@ public class ClassServerA implements ClassServer {
         }
         classMapper.deleteMembers(cID);
         classMapper.deleteApproval(cID);
-        classMapper.deleteClass(cID);
+//        classMapper.deleteClass(cID);
         return 0;
+    }
+
+    @Override
+    public List<String> importMember(int uID, int cID, List<ExcelData> dataList) {
+        List<String> res = new ArrayList<>();
+        Classes classes = classMapper.getClasses(cID);
+        if(classes.getAdminID() != uID) {
+            res.add("您无权执行此操作");
+            return res;
+        }
+        for(ExcelData data : dataList) {
+            List<Certification> certificate = userMapper.certificate(data.getName(), data.getID());
+            if (certificate.size() == 0) { //找不到认证
+                res.add(data.getName() + " " + data.getID() + ": 找不到该学生");
+                continue;
+            }
+            if(certificate.get(0).getUID() == null) {
+                res.add(data.getName() + " " + data.getID() + ": 该学生仍未注册");
+                continue;
+            }
+            //查看是否已在班级里
+            Integer role = classMapper.getRole(certificate.get(0).getUID(), cID);
+            if(role != null) {
+                res.add(data.getName() + " " + data.getID() + ": 该学生已在班级内");
+                continue;
+            }
+            //加入班级
+            classMapper.addMember(cID, certificate.get(0).getUID(), 0);
+            //发送通知
+            User user = userMapper.getUser(uID);
+            notationMapper.createNote(user.getName(), classes.getClassName(), "您已被老师邀请加入班级: " + classes.getClassName(), certificate.get(0).getUID());
+            res.add(data.getName() + " " + data.getID() + ": 学生导入班级成功");
+        }
+        return res;
     }
 }

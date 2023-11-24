@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface LoginServer {
 
-    public List<User> login(String mail, String password);
+    public User login(String mail, String password);
 
     public int register(String mail, String password, String name);
 
@@ -22,4 +22,6 @@ public interface LoginServer {
     int modifyReadme(int uID, String readme);
 
     void setHeader(int uID, String filePath);
+
+    int getRole(int uID);
 }

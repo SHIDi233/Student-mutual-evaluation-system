@@ -22,4 +22,8 @@ public interface ApprovalServer {
     int approve(int uID, int aID, String type, int grant);
 
     Map<String, Object> getNotation(int uID, int nID);
+
+    int getUnread(int uID);
+
+    String readNotation(int uID, int nID);
 }

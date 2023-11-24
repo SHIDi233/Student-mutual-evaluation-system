@@ -1,6 +1,7 @@
 package com.example.web_test.mapper;
 
 import com.example.web_test.pojo.ClassApproval;
+import com.example.web_test.pojo.ClassMember;
 import com.example.web_test.pojo.Classes;
 import com.example.web_test.pojo.User;
 import org.apache.ibatis.annotations.*;
@@ -58,8 +59,11 @@ public interface ClassMapper {
     List<User> getMembers(int cID);
 
     @Select("select role from class_member where classID=#{cID} and uID=#{uID}")
-    int getRole(int uID, int cID);
+    Integer getRole(int uID, int cID);
 
     @Delete("delete from class_member where classID=#{cID} and uID=#{kID}")
     void kickMember(int cID, int kID);
+
+    @Select("select * from class_member where classID=#{cID}")
+    List<ClassMember> listMembers(int cID);
 }

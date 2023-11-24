@@ -1,5 +1,7 @@
 package com.example.web_test.server;
 
+import com.example.web_test.utils.ExcelData;
+
 import java.util.List;
 import java.util.Map;
 
@@ -20,4 +22,6 @@ public interface ClassServer {
     Map<String, Object> searchClass(String code);
 
     int deleteClass(int uID, int cID);
+
+    List<String> importMember(int uID, int cID, List<ExcelData> dataList);
 }

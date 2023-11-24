@@ -5,6 +5,7 @@ import com.example.web_test.pojo.Certification;
 import com.example.web_test.pojo.Result;
 import com.example.web_test.pojo.User;
 import com.example.web_test.server.LoginServer;
+import com.example.web_test.utils.EncodeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,8 +25,15 @@ public class LoginServerA implements LoginServer {
     private UserMapper userMapper;
 
     @Override
-    public List<User> login(String mail, String password) {
-        return userMapper.login(mail, password);
+    public User login(String mail, String password) {
+        String cpw = EncodeUtils.bCryptEncode(password);
+        List<User> users = userMapper.login(mail);
+        for (User user : users) {
+            if(EncodeUtils.bCryptMatch(password, user.getPassword())) {
+                return user;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -38,7 +46,8 @@ public class LoginServerA implements LoginServer {
 
         User user = new User();
         user.setMail(mail);
-        user.setPassword(password);
+        String cpw = EncodeUtils.bCryptEncode(password);
+        user.setPassword(cpw);
         user.setName(name);
 
         userMapper.register(user);
@@ -46,24 +55,53 @@ public class LoginServerA implements LoginServer {
         return user.getID();
     }
 
+    /**
+     *
+     * @param ID 用户ID
+     * @param school 学校
+     * @param majority 专业
+     * @param introduction 个人简介
+     * @param studentID 学号
+     * @return -1：认证失败
+     *         -2：信息不完整
+     */
     @Override
     public int perfect(int ID, String school, String majority, String introduction, String studentID) {
+        //判断是否有缺失的信息
+        if(school == null || studentID == null) {
+            return -2;
+        }
+
+        //查找数据库中是否有认证信息
         List<Certification> certification = userMapper.certificate(school, studentID);
         if (certification.size() == 0 || certification.get(0).getUID() != null) {
             if(certification.get(0).getUID() != ID) {
                 return -1;
             }
         }
+
+        //认证
         userMapper.certification(school, studentID, ID);
         userMapper.modifyInfo(ID, school, majority, introduction, studentID, certification.get(0).getRole());
         return 0;
     }
 
+    //获取头像url
     @Override
     public String getHeader(int uID) {
         return userMapper.getHeader(uID);
     }
 
+    /**
+     *
+     * @param uID 用户ID
+     * @return name：用户名
+     *         introduction：个人简介
+     *         readme：个人主页readme
+     *         school：学校
+     *         majority：专业
+     *         studentID：学号
+     */
     @Override
     public Map<String, String> getInfo(int uID) {
         User user = userMapper.getUser(uID);
@@ -101,5 +139,10 @@ public class LoginServerA implements LoginServer {
     @Override
     public void setHeader(int uID, String filePath) {
         userMapper.setHeader(uID, filePath);
+    }
+
+    @Override
+    public int getRole(int uID) {
+        return userMapper.getUser(uID).getRole();
     }
 }
