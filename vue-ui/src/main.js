@@ -6,6 +6,14 @@ import axios from 'axios';
 import ElementUI from 'element-ui'
 import leMarkdownEditor from 'le-markdown-editor'
 import 'element-ui/lib/theme-chalk/index.css'
+import mavonEditor from 'mavon-editor'
+import 'mavon-editor/dist/css/index.css'
+import html2canvas from 'html2canvas';
+
+//使用mavon-editor
+Vue.use(mavonEditor)
+
+Vue.use(html2canvas)
 
 Vue.use(ElementUI)
 Vue.use(VueRouter);

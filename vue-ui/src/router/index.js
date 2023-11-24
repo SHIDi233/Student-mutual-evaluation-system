@@ -11,6 +11,12 @@ import self from "../components/UserHome.vue"
 import cls from "../components/ClassPage.vue"
 import info from "../components/ClassInfoPage.vue"
 
+// import hwList from "../components/hwList.vue"
+import pubHw from "../components/publishHomework.vue"
+import wrtHw from "../components/writeHomework.vue"
+import wtcHw from "../components/watchHomework.vue"
+
+import evaluateHw from "../components/EvaluationHw.vue"
 
 //2.使用路由
 Vue.use(VueRouter);
@@ -36,6 +42,8 @@ const router = new VueRouter({
           name:'register',
           component: register,
         },
+        
+        
         {
           path: "/home",
           name:'index',
@@ -56,19 +64,146 @@ const router = new VueRouter({
               name:'self',
               component: self,
             },
+            
             {
               path: "/class",
               name:'cls',
               component: cls,
+              // children:[
+              //   {
+              //     path: "/hw/publish/:hwID",
+              //     name:'hwPub',
+              //     component: pubHw,
+              //   },
+              //   {
+              //     path: "/hw/write/:hwID",
+              //     name:'hwWrt',
+              //     component: wrtHw,
+              //   },
+              //   {
+              //     path: "/hw/watch/:hwID",
+              //     name:'hwWtc',
+              //     component: wtcHw,
+              //   }
+              // ]
             },
             {
               path: "/class/:classID",
               name:'clsInfo',
               component: info,
-            }
+              // children:[
+              //   {
+              //     path: "/hw/publish/:hwID",
+              //     name:'hwPub',
+              //     component: pubHw,
+              //   },
+              //   {
+              //     path: "/hw/write/:hwID",
+              //     name:'hwWrt',
+              //     component: wrtHw,
+              //   },
+              //   {
+              //     path: "/hw/watch/:hwID",
+              //     name:'hwWtc',
+              //     component: wtcHw,
+              //   }
+              // ]
+            },
+            // {
+            //   path: "/hw",
+            //   name:'hw',
+            //   component: hwList,
+            // },
+            // {
+            //   path: "/hw/publish/:hwID",
+            //   name:'hwPub',
+            //   component: pubHw,
+            // },
+            // {
+            //   path: "/hw/write/:hwID",
+            //   name:'hwWrt',
+            //   component: wrtHw,
+            // },
+            // {
+            //   path: "/hw/watch/:hwID",
+            //   name:'hwWtc',
+            //   component: wtcHw,
+            // }
           ]
         },
+
+
+        {
+          path: "/hw/publish/:classID",
+          name:'hwPub',
+          component: pubHw,
+        },
+        {
+          path: "/hw/publish/:hwID/:classID",
+          name:'hwPub',
+          component: pubHw,
+        },
+        {
+          path: "/hw/write/:hwID",
+          name:'hwWrt',
+          component: wrtHw,
+        },
+        {
+          path: "/hw/watch/:hwID",
+          name:'hwWtc',
+          component: wtcHw,
+        },
+        {
+          path: "/hw/evaluate/:hwID",
+          name:'evaluate',
+          component: evaluateHw,
+        },
+        {
+          path: "/hw/evaluate/:hwID/:uID/",
+          name:'evaluate',
+          component: evaluateHw,
+        },
+
+        // {
+        //   path:"/hw/publish/:classID",
+        //   name:'hw',
+        //   component:hwList,
+        //   children:[
+        //     {
+        //       path: "/publish/:classID",
+        //       name:'hwPub',
+        //       component: pubHw,
+        //     },
+        //     {
+        //       path: "/publish/:hwID/:classID",
+        //       name:'hwPub',
+        //       component: pubHw,
+        //     },
+        //     {
+        //       path: "/write/:hwID",
+        //       name:'hwWrt',
+        //       component: wrtHw,
+        //     },
+        //     {
+        //       path: "/watch/:hwID",
+        //       name:'hwWtc',
+        //       component: wtcHw,
+        //     },
+        //     {
+        //       path: "/evaluate/:hwID",
+        //       name:'evaluate',
+        //       component: evaluateHw,
+        //     },
+        //     {
+        //       path: "/evaluate/:hwID/:uID/",
+        //       name:'evaluate',
+        //       component: evaluateHw,
+        //     },
+        //   ]
+        // },
+
         ]
+
 
       
 });

@@ -8,10 +8,19 @@
               <input id="account" type="text" placeholder="账号" value="" v-model="ac">
               <input id="pwd" type="password" placeholder="密码" value="" v-model="pw" >
               
-              <a href="#" class="go" v-on:click="getValue">登录</a>
-              <a href="#" class="go" v-on:click="register">注册</a>
+              <!-- <a href="#" class="go" v-on:click="getValue" >登录</a>
+              <a href="#" class="go" v-on:click="register">注册</a> -->
+              
               <br>
+              <div style="width: 100%; ">
+                <el-button style="width: 100%;" class="go" v-loading="loading" @click="getValue">登录</el-button>
+              </div>
+              <div>
+                <el-button style="width: 100%;" class="go" @click="register">注册</el-button>
+              </div>
+              
           </div>
+          
       </div>
     </body>
 </template>
@@ -25,7 +34,9 @@
             //message: 'Hello Vue.js!'
             return{
                 ac:"",
-                pw:""
+                pw:"",
+
+                loading:false,
             }
         },
         methods: {
@@ -36,6 +47,8 @@
                 // var p = this.pw;
                 // alert(a);
                 // alert(p);
+
+                this.loading=true;
 
                 var params = new URLSearchParams();
                 params.append('mail',this.ac);
@@ -51,11 +64,15 @@
                         this.$router.push('/home');
                     }
                     else{
-                        alert("密码错误")
+                        // alert("密码错误")
+                        this.$message.error('账户/密码错误');
+                        this.loading=false;
                     }
                 }).catch(error => {
-                    alert(error)
-                    alert("请求失败")
+                    // alert(error)
+                    // alert("请求失败")
+                    this.$message.error(+error+' (网络错误)');
+                    this.loading=false;
                 })
             },
             register: function () {

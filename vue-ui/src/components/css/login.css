@@ -59,11 +59,12 @@
         .go{
             text-align: center;
             display: block;
-            height: 24px;
-            padding: 12px;
+            left:0px;
+            height: 44px;
+            padding: 10px;
             font: 900 20px '';
             border-radius: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
             color: #fff;
             letter-spacing: 3px;
             background-image: linear-gradient(to left,

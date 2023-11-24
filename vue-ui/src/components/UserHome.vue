@@ -1,4 +1,4 @@
-<template>
+3<template>
     <div>
         <el-container>
             <el-aside width="300px">
@@ -12,22 +12,21 @@
                     </el-descriptions>
                 </div>
             </el-aside>
-            <el-main  v-loading="loading">Readme.md
+            <el-main  v-loading="loading">
                 <div>
-                    <el-button type="primary" @click="flag = true ">编辑</el-button>
-                    <el-button type="primary" @click="upload">保存</el-button>
+                    <el-button-group>
+                        <el-button type="primary" @click="isEdit=true ">编辑</el-button>
+                        <el-button type="primary" @click="isEdit=false ">预览</el-button>
+                        <el-button type="primary" @click="upload">保存</el-button>
+                    </el-button-group>
+                    
                 </div>
                     <!-- <div class="context" v-html="compiledMarkdown"></div> -->
-                <div>
-                    <el-input
-                        type="textarea"
-                        autosize
-                        placeholder="请输入内容"
-                        v-model="markdown"
-                        v-show="flag">
-                    </el-input>
+                <div v-if="isEdit">
+                    <mavon-editor ref=md @imgAdd="$imgAdd" v-model="markdown"/>
                 </div>
-                <div v-html="html"></div>
+                <div v-else v-html="html">
+                </div>
             </el-main>
         </el-container>
         
@@ -42,11 +41,12 @@
     const restweburl = global.ip;
 
     import { marked } from "marked";
-    // import SimpleMDE from "vue-simplemde";
 
     export default {
       data() {
         return {
+            isEdit:false,
+
             title:"CCN_default_name",
             label:"",
             circleUrl:"",
@@ -64,6 +64,20 @@
     //     SimpleMDE
     //   },
     methods:{
+        $imgAdd(pos, $file){
+            let $vm=this.$refs.md;
+            // 第一步.将图片上传到服务器.
+            var formdata = new FormData();
+            formdata.append('file', $file);
+            console.log($file);
+            axios({
+                url: restweburl+'uploadFile',
+                method: 'post',
+                data: formdata,
+            }).then((url) => {
+                $vm.$img2Url(pos, url.data.data);
+            })
+        },
         upload(){
             var params = new URLSearchParams();
             params.append('readme',this.markdown);
