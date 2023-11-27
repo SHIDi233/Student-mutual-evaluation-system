@@ -4,6 +4,8 @@ import VueRouter from 'vue-router'
 import login from "../components/LoginPage.vue";
 import register from "../components/RegisterPage.vue";
 import index from "../components/IndexPage.vue";
+import h from "../components/HePage.vue";
+
 import msg from "../components/MsgPage.vue";
 import change from "../components/ChangeInfo.vue"
 import self from "../components/UserHome.vue"
@@ -24,7 +26,7 @@ Vue.use(VueRouter);
 //3.创建VueRouter的实例
 const router = new VueRouter({
     //tips:不想要 #（锚点）就添加下面代码
-     mode:'history', 
+     mode:'hash', 
     //4.配置路由的path和组件
     routes :[
         {
@@ -49,6 +51,11 @@ const router = new VueRouter({
           name:'index',
           component: index,
           children:[
+            {
+              path: "/",
+              name:'h',
+              component: h,
+            },
             {
               path: "/msg",
               name:'msg',

@@ -216,6 +216,7 @@ import html2canvas from 'html2canvas';
                         params1.append('hwID',this.$route.params.hwID);
                         params1.append('eID',this.eID);
                         params1.append('score',this.inputScore);
+                        params1.append('comment',this.input);
                         params1.append('image',this.img);
 
                         axios.post(restweburl+'evaluate',params1).then(response => {
@@ -226,6 +227,7 @@ import html2canvas from 'html2canvas';
                                     type: 'success'
                                 });
                                 this.upload=false;
+                                this.input='';
                             }
                             else{
                                 this.$message.error(response.data.msg);
