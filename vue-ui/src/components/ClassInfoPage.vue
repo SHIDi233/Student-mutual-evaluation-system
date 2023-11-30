@@ -163,7 +163,10 @@
               </div>
             </div>
           </el-tab-pane>
-          
+          <el-tab-pane label="公告栏" name="forth">
+            <el-input v-model="not"></el-input>
+            <el-button @click="sendNotation()">发布</el-button>
+          </el-tab-pane>
         </el-tabs>
         <el-dialog
           title="发起讨论"
@@ -473,6 +476,21 @@
         .catch(function (error) {
           console.log(error);
         });
+        },
+        sendNotation(){
+          var params = new URLSearchParams();
+          params.append('cID',this.$route.params.classID);
+          params.append('content',this.not);
+          axios.post(restweburl + "createNotation",params)
+          .then((res) => {
+            this.$message({
+            message: res.data.msg,
+            type: 'success'
+        });
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
         }
     },
     data() {
@@ -508,7 +526,8 @@
 
         reply:"",
 
-        
+        not:"",
+
       }
     },
     created() {
