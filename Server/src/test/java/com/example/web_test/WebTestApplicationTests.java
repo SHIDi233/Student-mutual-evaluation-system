@@ -2,10 +2,9 @@ package com.example.web_test;
 
 import com.example.web_test.mapper.UserMapper;
 import com.example.web_test.pojo.User;
-import com.example.web_test.utils.EncodeUtils;
-import com.example.web_test.utils.ExcelData;
-import com.example.web_test.utils.ExcelUtils;
-import com.example.web_test.utils.JGitUtils;
+import com.example.web_test.utils.*;
+import com.example.web_test.utils.DuplicateCheck.DuplicateCheckUtils;
+import com.example.web_test.utils.DuplicateCheck.TXT_IO;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.FileMode;
@@ -141,5 +140,30 @@ class WebTestApplicationTests {
         for (ExcelData data : excelData) {
             System.out.println(data.getName() + " " + data.getID());
         }
+    }
+
+    @Test
+    public void duplicateCheck() throws FileNotFoundException {
+        String str1 = TXT_IO.readTxt("C:\\Users\\HP\\Desktop\\用例\\text1.txt");
+        String str2 = TXT_IO.readTxt("C:\\Users\\HP\\Desktop\\用例\\text2.txt");
+        String str3 = TXT_IO.readTxt("C:\\Users\\HP\\Desktop\\用例\\text3.txt");
+        double rate1 = DuplicateCheckUtils.getRate(str1, str2);
+//        SimHash simHash1 = new SimHash(str1, 64);
+//        SimHash simHash2 = new SimHash(str2, 64);
+//        int distance = simHash1.hammingDistance(simHash2);
+//        double rate2 = 0.01 * (100 - distance * 100 / 64);
+        double rate2 = DuplicateCheckUtils.getRate(str2, str3);
+        double rate3 = DuplicateCheckUtils.getRate(str1, str3);
+//        System.out.println(distance);
+        System.out.println(rate1);
+//        System.out.println(rate2);
+        System.out.println(rate2);
+        System.out.println(rate3);
+    }
+
+    @Test
+    public void glmTest() throws IOException {
+        String reply = GlmUtils.getReply("请问地球是圆的还是方的");
+        System.out.println(reply);
     }
 }

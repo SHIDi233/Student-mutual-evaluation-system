@@ -8,6 +8,7 @@ import com.example.web_test.utils.OBSUtils;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -23,6 +24,9 @@ public class LoginController {
 
     @Autowired
     private LoginServer loginServer;
+
+    @Value("${path.headPath}")
+    private String headPath;
 
     /**
      * 登录功能
@@ -192,8 +196,8 @@ public class LoginController {
         MultipartFile file = multipartRequest.getFile("file");
         String originalFileName = file.getOriginalFilename();
         String newFileName = UUID.randomUUID().toString() + originalFileName.substring(originalFileName.lastIndexOf("."));
-        file.transferTo(new File("D:/vue/header/" + newFileName));
-        String filePath = OBSUtils.uploadFile(new File("D:/vue/header/" + newFileName), newFileName);
+        file.transferTo(new File(headPath + newFileName));
+        String filePath = OBSUtils.uploadFile(new File(headPath + newFileName), newFileName);
         loginServer.setHeader(uID, filePath);
         return Result.success();
     }

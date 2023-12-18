@@ -2,26 +2,37 @@ package com.example.web_test.controller;
 
 import com.example.web_test.pojo.Result;
 import com.example.web_test.server.HomeworkServer;
+import com.example.web_test.utils.AnalyseUtils;
 import com.example.web_test.utils.JwtUtils;
 import com.example.web_test.utils.OBSUtils;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 @RestController
 public class HomeworkController {
 
     @Autowired
     HomeworkServer homeworkServer;
+
+    @Value("${path.sourcePath}")
+    private String sourcePath;
 
     @GetMapping("/createHomework")
     public Result createHomework(HttpServletRequest request) {
@@ -180,8 +191,8 @@ public class HomeworkController {
         } else {
             newFileName = UUID.randomUUID().toString();
         }
-        file.transferTo(new File("D:/vue/source/" + newFileName));
-        String filePath = OBSUtils.uploadFile(new File("D:/vue/source/" + newFileName), newFileName);
+        file.transferTo(new File(sourcePath + newFileName));
+        String filePath = OBSUtils.uploadFile(new File(sourcePath + newFileName), newFileName);
 //        loginServer.setHeader(uID, filePath);
         return Result.success(filePath);
     }
@@ -248,6 +259,130 @@ public class HomeworkController {
         String comment = request.getParameter("comment");
         homeworkServer.mark(uID, hwID, sID, score, comment);
         return null;
+    }
+
+    //申诉作业
+    @PostMapping("/appeal")
+    public Result appeal(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        String content = request.getParameter("content");
+
+        int res = homeworkServer.appeal(uID, hwID, content);
+        if(res == -1) { return Result.error("您没有执行此操作的权限"); }
+        if(res == -2) { return Result.error("当前阶段无法进行申诉"); }
+        if(res == -3) { return Result.error("无法多次申诉"); }
+        return Result.success();
+    }
+
+    //老师获取申诉
+    @PostMapping("/getAppeal")
+    public Result getAppeal(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+
+        List<Map<String, Object>> res = homeworkServer.getAppeal(uID, hwID);
+
+        return Result.success(res);
+    }
+
+    //处理申诉
+    @PostMapping("/handleAppeal")
+    public Result handleAppeal(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        int sID = Integer.parseInt(request.getParameter("sID"));
+        String result = request.getParameter("content");
+
+        int res = homeworkServer.handleAppeal(uID, hwID, sID, result);
+        if(res == -1) { return Result.error("找不到申诉"); }
+
+        return Result.success();
+    }
+
+    @PostMapping("/analyseGrade")
+    public Result analyseGrade(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int cID = Integer.parseInt(request.getParameter("cID"));
+
+        String analysis = homeworkServer.analyseGrade(uID, cID);
+        return Result.success(analysis);
+    }
+
+    @PostMapping("/getGrades")
+    public Result getGrades(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int cID = Integer.parseInt(request.getParameter("cID"));
+
+        List<Integer> analysis = homeworkServer.getGrades(uID, cID);
+        return Result.success(analysis);
+    }
+
+
+    @PostMapping("/streamTest")
+    public void test(HttpServletRequest request, HttpServletResponse res) throws IOException, InterruptedException {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int cID = Integer.parseInt(request.getHeader("cID"));
+
+        String analysis = homeworkServer.analyseGrade(uID, cID);
+
+
+        // 响应流
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setContentType("text/event-stream");
+        res.setCharacterEncoding("UTF-8");
+        res.setHeader("Pragma", "no-cache");
+        ServletOutputStream out = null;
+        out = res.getOutputStream();
+        AnalyseUtils.getReply(analysis, out);
+
+    }
+
+    @GetMapping("/streamTest2")
+    public void test2(HttpServletRequest request, HttpServletResponse res) throws IOException, InterruptedException {
+        int uID = Integer.parseInt(request.getParameter("uID"));
+        int cID = Integer.parseInt(request.getParameter("cID"));
+
+        String analysis = homeworkServer.analyseGrade(uID, cID);
+
+
+        // 响应流
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setContentType("text/event-stream");
+        res.setCharacterEncoding("UTF-8");
+        res.setHeader("Pragma", "no-cache");
+        ServletOutputStream out = null;
+        out = res.getOutputStream();
+        AnalyseUtils.getReply(analysis, out);
+    }
+
+    @GetMapping("/theadTest")
+    public Future<String> threadTest() {
+        System.out.println("Received request to start task");
+
+        // 启动异步任务
+        CompletableFuture<Result> asyncTask = homeworkServer.startTask();
+
+        // 立即响应前端请求
+        return new AsyncResult<>("Task started. Check logs for completion.");
     }
 
 }

@@ -123,5 +123,20 @@ public class EvaluationController {
         return Result.success(res);
     }
 
+    //修改分数
+    @PostMapping("/modifyScore")
+    public Result modifyScore(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int sID = Integer.parseInt(request.getParameter("uID"));
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        int score = Integer.parseInt(request.getParameter("score"));
+
+        int res = evaluationServer.modifyScore(uID, sID, hwID, score);
+        return Result.success();
+    }
+
 
 }

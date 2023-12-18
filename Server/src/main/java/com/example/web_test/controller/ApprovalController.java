@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -130,5 +132,31 @@ public class ApprovalController {
         String res = approvalServer.readNotation(uID, nID);
         return Result.success(res);
     }
+
+    //创建公告并发布
+    @PostMapping("/createNotation")
+    public Result createNotation(HttpServletRequest request) {
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        int uID = (int) claims.get("ID");
+        int cID = Integer.parseInt(request.getParameter("cID"));
+        String content = request.getParameter("content");
+        int res = approvalServer.createNotation(uID, cID, content);
+        return Result.success();
+    }
+
+    //创建公告并发布
+    @PostMapping("/getClassNotation")
+    public Result getClassNotation(HttpServletRequest request) {
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        int uID = (int) claims.get("ID");
+        int cID = Integer.parseInt(request.getParameter("cID"));
+        List<String> res = approvalServer.getClassNotation(uID, cID);
+        if(res.size() == 0) { return Result.success(null); }
+        return Result.success(res.get(res.size()-1));
+    }
+
+
 
 }

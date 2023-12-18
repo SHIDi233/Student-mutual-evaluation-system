@@ -75,9 +75,7 @@ public class LoginServerA implements LoginServer {
         //查找数据库中是否有认证信息
         List<Certification> certification = userMapper.certificate(school, studentID);
         if (certification.size() == 0 || certification.get(0).getUID() != null) {
-            if(certification.get(0).getUID() != ID) {
-                return -1;
-            }
+            return -1;
         }
 
         //认证

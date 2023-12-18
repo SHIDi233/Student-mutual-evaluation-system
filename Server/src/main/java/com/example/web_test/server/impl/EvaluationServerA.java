@@ -252,4 +252,10 @@ public class EvaluationServerA implements EvaluationServer {
         res.put("image", evaluationMember.getImage());
         return res;
     }
+
+    @Override
+    public int modifyScore(int uID, int sID, int hwID, int score) {
+        evaluationMapper.modifyScore(sID, hwID, score);
+        return 0;
+    }
 }

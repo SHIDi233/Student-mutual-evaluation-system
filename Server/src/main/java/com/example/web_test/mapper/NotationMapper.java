@@ -14,6 +14,9 @@ public interface NotationMapper {
     @Insert("insert into notation(senderName, scope, content, receiverID) VALUES (#{senderName}, #{scope}, #{content}, #{receiverID})")
     public void createNote(String senderName, String scope, String content, int receiverID);
 
+    @Insert("insert into notation(type, senderName, scope, content, receiverID) VALUES ('NT-C', #{senderName}, #{scope}, #{content}, #{receiverID})")
+    public void createClassNote(String senderName, String scope, String content, int receiverID);
+
     @Select("select * from notation where scope=#{wName}")
     public List<Notation> getWareNote(String wName);
 
@@ -37,4 +40,7 @@ public interface NotationMapper {
 
     @Update("update notation set isRead=true where ID=#{nID}")
     void setRead(int nID);
+
+    @Select("select content from notation where type='NT-C' and scope=#{cName}")
+    List<String> getClassNotation(int cID, String cName);
 }
