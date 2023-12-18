@@ -1,11 +1,11 @@
 // // const { defineConfig } = require('@vue/cli-service')
 // // // const BASE_URL = '/'
-// // //打包配置文件
-// // module.exports = {
-// //   assetsDir: 'static',
-// //   parallel: false,
-// //   publicPath: './',
-// // };
+//打包配置文件
+module.exports = {
+  assetsDir: 'static',
+  parallel: false,
+  publicPath: './',
+};
 
 
 // const path = require('path')

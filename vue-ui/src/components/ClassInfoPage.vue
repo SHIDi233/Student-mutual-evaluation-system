@@ -141,8 +141,88 @@
               </el-table>
               </div>
           </el-tab-pane>
-          
+          <el-tab-pane label="讨论区" name="third">
+            <el-button @click="dialogVisible_2=true">发起讨论</el-button>
+            <div v-if="dis.length>0">
+              <div v-for="item in dis" :key="item" class="text item">
+                <div>
+                  <el-col :span="18" style="margin-bottom: 10px;">
+                    <el-card shadow="hover" @click.native="openDisscuss(item.pID)">
+                      <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 26px;">{{item.pName}}</span>
+                        <span style="font-size: 20px; color:rgb(128,128,128);">{{item.profile}}</span>
+                      </div>
+                      <div>
+                        <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.cTime}}</span>
+                        <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
+                        <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
+                      </div>
+                    </el-card>
+                  </el-col>
+                </div>
+              </div>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="公告栏" name="forth">
+            <el-input v-model="not"></el-input>
+            <el-button @click="sendNotation()">发布</el-button>
+          </el-tab-pane>
         </el-tabs>
+        <el-dialog
+          title="发起讨论"
+          :visible.sync="dialogVisible_2"
+          width="30%"
+          :before-close="handleClose">
+          <!-- <span style="white-space:pre-wrap;">{{ this.console }}</span>
+          <span slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="dialogVisible = false;refresh()">O K</el-button>
+          </span> -->
+          <el-input v-model="inputTheme" placeholder="请输入主题"></el-input>
+          <el-input v-model="inputQuestion" placeholder="请输入问题"></el-input>
+          <el-button @click="sendTopic()">发送</el-button>
+        </el-dialog>
+        <el-dialog
+          :title="pName"
+          :visible.sync="dialogVisible_3"
+          width="80%"
+          :before-close="handleClose">
+          <div>
+            <div v-if="reply!=''">
+              <el-avatar style="float: left;" :size="40" :src="reply.head"></el-avatar>
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 18px;">{{reply.uName}}</span>
+                <span style="font-size: 26px;">{{reply.pName}}</span>
+                <span style="font-size: 20px;">{{reply.content}}</span>
+              </div>
+              <span style="float: right; font-size: 12px;color:rgb(160,160,160);"> {{reply.cTime}}</span>
+            </div>
+            <el-divider></el-divider>
+            <div v-if="reply!=''">
+              <div v-if="reply.reply.length>0">
+                <div v-for="item in reply.reply" :key="item" class="text item">
+                  <div>
+                    <el-col :span="18" style="margin-bottom: 10px;">
+                      <el-card shadow="hover" >
+                        <div style="display: flex; flex-direction: column;">
+                          <el-avatar style="float: right;" :size="20" :src="reply.head"></el-avatar>
+                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
+                          <span style="font-size: 26px;">{{item.content}}</span>
+                        </div>
+                        <div>
+                          <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.sendTime}}</span>
+                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.floor}}</span>
+                          <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
+                        </div>
+                      </el-card>
+                    </el-col>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </el-dialog>
         <el-dialog
           title="控制台输出"
           :visible.sync="dialogVisible"
@@ -165,6 +245,34 @@
   export default {
     
     methods: {
+      sendTopic(){
+        var params = new URLSearchParams();
+        params.append('cID',this.$route.params.classID);
+        params.append('content',this.inputQuestion);
+        params.append('name',this.inputTheme);
+        params.append('teacherOnly',1);
+        axios.post(restweburl + "createPost",params)
+        .then((res) => {
+          this.tableData = res.data.data;
+          this.loading=false;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      },
+      openDisscuss(id){
+        var params = new URLSearchParams();
+                params.append('pID',id);
+                axios.post(restweburl + "getReply",params)
+                .then((res) => {
+                  this.reply = res.data.data;
+                  this.dialogVisible_3=true;
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+        
+      },
       publish(){
           axios.get(restweburl + "createHomework")
             .then((res) => {
@@ -368,12 +476,29 @@
         .catch(function (error) {
           console.log(error);
         });
+        },
+        sendNotation(){
+          var params = new URLSearchParams();
+          params.append('cID',this.$route.params.classID);
+          params.append('content',this.not);
+          axios.post(restweburl + "createNotation",params)
+          .then((res) => {
+            this.$message({
+            message: res.data.msg,
+            type: 'success'
+        });
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
         }
     },
     data() {
       return {
 
         classID:this.$route.params.classID,
+
+        dis:[],
 
         loading:true,
         tableData: [
@@ -392,7 +517,17 @@
         options:[],
 
         dialogVisible:false,
+        dialogVisible_2:false,
+        dialogVisible_3:true,
         console:"",
+
+        inputQuestion:"",
+        inputTheme:"",
+
+        reply:"",
+
+        not:"",
+
       }
     },
     created() {
@@ -465,6 +600,17 @@
           console.log(error);
         });
 
+        var params1 = new URLSearchParams();
+        params1.append('cID',this.$route.params.classID);
+        axios.post(restweburl + "getPosts",params1)
+          .then((res) => {
+            this.dis = res.data.data;
+            this.console.log(res.data.data)
+          })
+          .catch(function (error) {
+              console.log(error);
+          })
+
         axios.get(restweburl + `getCode?classID=${this.$route.params.classID}`)
         .then((res) => {
           this.ct = res.data.data.className+' 代码('+res.data.data.code+')';
@@ -472,6 +618,8 @@
         .catch(function (error) {
           console.log(error);
         });
+
+        
   },
 
   }
