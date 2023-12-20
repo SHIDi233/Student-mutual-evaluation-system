@@ -68,4 +68,7 @@ public interface EvaluationMapper {
 
     @Select("select * from evaluation_member where eID=#{eID}")
     EvaluationMember getEvaluationMember3(int eID);
+
+    @Update("update evaluationstat set score=#{score} where uID=#{uID} and hwID=#{hwID}")
+    void modifyScore(int uID, int hwID, int score);
 }

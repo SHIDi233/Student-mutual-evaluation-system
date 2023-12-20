@@ -19,4 +19,6 @@ public interface EvaluationServer {
     List<Map<String, Object>> getEvaluatedMember(int uID, int hwID, int sID);
 
     Map<String, Object> getEvaluationResult(int uID, int eID);
+
+    int modifyScore(int uID, int sID, int hwID, int score);
 }

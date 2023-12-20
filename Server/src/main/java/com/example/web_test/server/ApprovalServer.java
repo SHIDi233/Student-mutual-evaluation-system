@@ -26,4 +26,8 @@ public interface ApprovalServer {
     int getUnread(int uID);
 
     String readNotation(int uID, int nID);
+
+    int createNotation(int uID, int cID, String content);
+
+    List<String> getClassNotation(int uID, int cID);
 }

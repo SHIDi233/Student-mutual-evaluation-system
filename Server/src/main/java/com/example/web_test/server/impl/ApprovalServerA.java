@@ -253,4 +253,30 @@ public class ApprovalServerA implements ApprovalServer {
         notationMapper.setRead(nID);
         return notation.getContent();
     }
+
+    @Override
+    public int createNotation(int uID, int cID, String content) {
+        User user = userMapper.getUser(uID);
+        Classes classes = classMapper.getClasses(cID);
+        if(classes.getAdminID() != uID || user.getRole() != 1) {
+            return -1;//无权限
+        }
+        //获取班级所有人
+        List<User> members = classMapper.getMembers(cID);
+        for(User member : members) {
+            if(member.getID() == uID) { continue; }
+
+            //创建公告
+            notationMapper.createClassNote(user.getName(), classes.getClassName(), content, member.getID());
+        }
+        return 0;
+    }
+
+    @Override
+    public List<String> getClassNotation(int uID, int cID) {
+        Classes classes = classMapper.getClasses(cID);
+        List<String> classNotation = notationMapper.getClassNotation(cID, classes.getClassName());
+
+        return classNotation;
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.web_test.mapper;
 
+import com.example.web_test.pojo.Appeal;
 import com.example.web_test.pojo.ClassMember;
 import com.example.web_test.pojo.Homework;
 import com.example.web_test.pojo.HomeworkMember;
@@ -56,9 +57,25 @@ public interface HomeworkMapper {
     @Select("select * from homework_member where hwID=#{hwID} and isSubmit=false")
     List<HomeworkMember> getAbsent(int hwID);
 
-    @Update("update homework_member set score=#{score}, comment=#{comment} where uID=#{sID} and hwID=#{hwID}")
+//    @Update("update homework_member set score=#{score}, comment=#{comment} where uID=#{sID} and hwID=#{hwID}")
+@Update("update evaluationstat set score=#{score} where uID=#{sID} and hwID=#{hwID}")
     void mark(int sID, int hwID, int score, String comment);
 
     @Update("update homework set ddl=now() where hwID=#{hwID}")
     void ddl(int hwID);
+
+    @Insert("insert into appeal(cID, hwID, uID, content) values(#{cID}, #{hwID}, #{uID}, #{content})")
+    void appeal(int uID, int hwID, int cID, String content);
+
+    @Select("select * from appeal where hwID=#{hwID}")
+    List<Appeal> getAppeal(int hwID);
+
+    @Select("select * from appeal where uID=#{uID} and hwID=#{hwID}")
+    List<Appeal> getMyAppeal(int uID, int hwID);
+
+    @Update("update appeal set result=#{result}, isHandled=true where hwID=#{hwID} and uID=#{sID}")
+    void handleAppeal(int hwID, int sID, String result);
+
+    @Select("select * from appeal where hwID=#{hwID} and uID=#{sID}")
+    Appeal getAppealByID(int hwID, int sID);
 }

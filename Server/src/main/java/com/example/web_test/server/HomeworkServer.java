@@ -1,8 +1,11 @@
 package com.example.web_test.server;
 
+import com.example.web_test.pojo.Result;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public interface HomeworkServer {
 
@@ -33,4 +36,16 @@ public interface HomeworkServer {
     List<Map<String, Object>> getAbsent(int uID, int hwID);
 
     int mark(int uID, int hwID, int sID, int score, String comment);
+
+    int appeal(int uID, int hwID, String content);
+
+    List<Map<String, Object>> getAppeal(int uID, int hwID);
+
+    int handleAppeal(int uID, int apID, int sID, String result);
+
+    String analyseGrade(int uID, int cID);
+
+    List<Integer> getGrades(int uID, int cID);
+
+    CompletableFuture<Result> startTask();
 }
