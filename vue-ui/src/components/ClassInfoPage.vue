@@ -10,7 +10,7 @@
         <el-page-header @back="goBack" :content="ct" style="margin-bottom: 20px;">
         </el-page-header>
         <el-tabs v-model="activeName">
-          <el-tab-pane label="班级成员" name="first">
+          <el-tab-pane label="班级成员" name="first111">
             <el-table 
               :data="tableData"
               style="width: 100%"
