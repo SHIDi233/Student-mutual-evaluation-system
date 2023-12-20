@@ -78,6 +78,7 @@
             </el-tab-pane>
             <el-tab-pane label="提交情况">
                 <el-button @click="drawer_2=true">开启互评</el-button>
+                <el-button @click="check">查重</el-button>
                 <!-- <el-button @click="caculate()">计算分数</el-button> -->
                 <el-table
                 :data="stus"
@@ -122,6 +123,14 @@
                     prop="evaScore"
                     label="分数"
                     width="250">
+                    <template slot-scope="scope">
+                        {{ scope.row.evaScore }}
+                        <div v-if="scope.row.isAppeal">
+                            <el-badge value="!" class="item">
+                            </el-badge>
+                            <el-button type="text" @click="sID=scope.row.uID;hwID=scope.row.hwID;drawer_3=true">处理申诉</el-button>
+                        </div>
+                    </template>
                 </el-table-column>
 
                 <el-table-column
@@ -140,6 +149,54 @@
                         type="text"
                         size="small">
                         互评列表
+                    </el-button>
+                    </template>
+                </el-table-column>
+                </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="查重情况">
+                <el-button @click="check">查重</el-button>
+                <!-- <el-button @click="caculate()">计算分数</el-button> -->
+                <el-table
+                :data="checked"
+                style="white-space: pre-wrap;width: 100%;"
+                max-height="8 50"
+                v-loading="loading"
+                :default-sort = "{prop: 'evaScore', order: 'descending'}"
+                >
+                <el-table-column
+                    fixed
+                    prop="sName1"
+                    label="学生1"
+                    width="150">
+                </el-table-column>
+                <el-table-column
+                    fixed
+                    prop="sName2"
+                    label="学生2"
+                    width="150">
+                </el-table-column>
+                <el-table-column
+                    fixed
+                    prop="content"
+                    label="信息"
+                    width="650"
+                    style="white-space: pre-wrap;">
+                    <template slot-scope="scope">
+                        <span style="white-space: pre-wrap;">{{ scope.row.content }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    fixed="right"
+                    label="操作"
+                    width="120">
+                    <template slot-scope="scope">
+                    <el-button
+                    @click.native.prevent="dialogVisible_3=true;s1ID = scope.row.sID1;s2ID = scope.row.sID2;s1Name = scope.row.sName1;s2Name = scope.row.sName2;report()"
+                        type="text"
+                        size="small">
+                        查重报告
                     </el-button>
                     </template>
                 </el-table-column>
@@ -167,7 +224,7 @@
             </el-dialog>
             <el-dialog width=1000 height="3000" title="详细" :visible.sync="dialogTableVisible_2">
                 <div style="font-size: 20px;">
-                    分数: {{ this.nscore }}
+                    分数: {{ this.nscore }} 
                 </div>
                 <div style="font-size: 20px;margin-top: 10px;">
                     点评内容: {{ this.ncomment }}
@@ -202,23 +259,67 @@
                 </div>
             </el-drawer>
         </el-tabs>
-        
+        <el-drawer
+                title="返回评语"
+                :visible.sync="drawer_3"
+                :direction="direction"
+                :before-close="handleClose">
+                <div style="margin-left: 20px;">
+                    <el-input v-model="backWord"></el-input>
+                </div>
+                <div>
+                    <el-button  style="margin-top: 10px;margin-right: 20px;float: right;" type="primary" @click="backAppeal()">提交</el-button>
+                </div>
+            </el-drawer>
+            <el-dialog
+          :title="pName"
+          :visible.sync="dialogVisible_3"
+          width="80%"
+          fullscreen="true"
+          :before-close="handleClose"
+          >
+          <div>
+            <a :href="'/#/hw/evaluate/'+this.$route.params.classID+'/'+this.s1ID" target="打开标签页的方式">{{this.s1Name}}</a>
+          </div>
+          <div>
+            <a :href="'/#/hw/evaluate/'+this.$route.params.classID+'/'+this.s2ID" target="打开标签页的方式">{{this.s2Name}}</a>
+          </div>
+          
+          <div>
+            <div v-html="compiledMarkdown"></div>
+          </div>
+
+        </el-dialog>
         </el-main>
     </el-container>
     </div>
 </template>
+
+<style>
+.el-table .cell {
+  white-space: pre-wrap;   /*这是重点。文本换行*/
+}
+</style>
 
 <script>
     import axios from 'axios'
     import global from './GlobalPage.vue'
     const restweburl = global.ip;
 
+    import { marked } from "marked";
+
     export default {
         
       data() {
         return {
+
+            backWord:'',
+            sID:0,
+            hwID:0,
+
             drawer: false,
             drawer_2: false,
+            drawer_3: false,
             direction: 'rtl',
 
             hwName:'',
@@ -234,6 +335,12 @@
 
             dialogTableVisible:false,
             dialogTableVisible_2:false,
+            dialogVisible_3:false,
+            s1ID:0,
+            s2ID:0,
+            s1Name:'',
+            s2Name:'',
+
             loadingDetail:false,
 
 
@@ -284,6 +391,9 @@
                 preview: true, // 预览
             },
             score:0,
+
+            checked:[],
+            context:'',
         }
       },
       created(){
@@ -367,8 +477,76 @@
             .catch(function (error) {
                 console.log(error);
             });
+
+        axios.post(restweburl+'getDuplicateState', params1).then(response => {
+            if(response.data.data==2){
+                axios.post(restweburl+'getDuplicateInfo', params1).then(response => {
+                    this.checked = response.data.data;
+                }).catch(error => {
+                    alert(error)
+                    alert("请求失败")
+                })
+            }
+            else{
+                alert("网络错误")
+            }
+        }).catch(error => {
+            alert(error)
+            alert("请求失败")
+        })
       },
       methods:{
+        report(){
+            var params1 = new URLSearchParams();
+            params1.append('hwID',this.$route.params.hwID);
+            params1.append('sID1',this.s1ID);
+            params1.append('sID2',this.s2ID);
+            axios.post(restweburl + "getDuplicateDetail",params1)
+            .then((res) => {
+                this.context = res.data.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        },
+        check(){
+            var params1 = new URLSearchParams();
+            params1.append('hwID',this.$route.params.hwID);
+            axios.post(restweburl+'startDuplicateCheck', params1).then(response => {
+                response
+            }).catch(error => {
+                alert(error)
+                alert("请求失败")
+            })
+        },
+        backAppeal(){
+            var params1 = new URLSearchParams();
+            params1.append('hwID',this.$route.params.hwID);
+            params1.append('sID',this.sID);
+            params1.append('content',this.backWord);
+
+            axios.post(restweburl+'handleAppeal', params1).then(response => {
+                response
+                var params2 = new URLSearchParams();
+                params2.append('hwID',this.$route.params.hwID);
+                params2.append('sID',this.sID);
+                params2.append('score',this.backWord);
+
+                axios.post(restweburl+'mark', params2).then(response => {
+                    response
+                    this.$message({
+                        message: 'success',
+                        type: 'success'
+                  });
+                }).catch(error => {
+                    alert(error)
+                    alert("请求失败")
+                })
+            }).catch(error => {
+                alert(error)
+                alert("请求失败")
+            })
+        },
         caculate(){
             var params = new URLSearchParams();
               params.append('hwID',this.$route.params.hwID);
@@ -576,7 +754,12 @@
                 alert("请求失败")
             })
         }
-      }
+      },
+      computed: {
+        compiledMarkdown() {
+            return marked.parse(this.context);
+        },
+      },
       
     }
 </script>

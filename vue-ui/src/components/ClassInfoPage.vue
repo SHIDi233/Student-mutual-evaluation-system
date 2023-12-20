@@ -128,6 +128,28 @@
                   label="创建时间"
                   width="120">
                 </el-table-column>
+                <!-- <el-table-column v-if="this.role===1"
+                  prop="evaScore"
+                  label="分数"
+                  width="120">
+                  <template slot-scope="scope">
+                    <span>{{scope.row.evaScore}}</span>
+                    
+                      <el-button  type="text" style="margin-left: 22px;" @click="appeal(scope.row.hwID)">申诉</el-button>
+                    
+                  </template>
+                </el-table-column> -->
+                <el-table-column v-if="this.role===0"
+                  prop="evaScore"
+                  label="分数"
+                  width="120">
+                  <template slot-scope="scope">
+                    <span>{{scope.row.evaScore}}</span>
+                    
+                      <el-button  type="text" style="margin-left: 22px;" @click="appeal(scope.row.hwID)">申诉</el-button>
+                    
+                  </template>
+                </el-table-column>
                 
                 <el-table-column
                   fixed="right"
@@ -141,6 +163,13 @@
               </el-table>
               </div>
           </el-tab-pane>
+
+          <el-tab-pane v-if="this.role===0" label="成绩分析" name="fourth">
+            <el-button @click="sendPost()">AI分析</el-button>
+            {{ this.anadx }}
+            <pre style="font-size: 18px;">{{ response }}</pre>
+          </el-tab-pane>
+
           <el-tab-pane label="讨论区" name="third">
             <el-button @click="dialogVisible_2=true">发起讨论</el-button>
             <div v-if="dis.length>0">
@@ -164,8 +193,13 @@
             </div>
           </el-tab-pane>
           <el-tab-pane label="公告栏" name="forth">
-            <el-input v-model="not"></el-input>
-            <el-button @click="sendNotation()">发布</el-button>
+            <div v-if="this.role===1" >
+              <el-input v-model="not"></el-input>
+              <el-button @click="sendNotation()">发布</el-button>
+            </div>
+            <div v-if="this.role===0">
+              {{ this.not }}
+            </div>
           </el-tab-pane>
         </el-tabs>
         <el-dialog
@@ -181,37 +215,41 @@
           <el-input v-model="inputQuestion" placeholder="请输入问题"></el-input>
           <el-button @click="sendTopic()">发送</el-button>
         </el-dialog>
+        
+        <!-- 回复回帖 -->
         <el-dialog
           :title="pName"
           :visible.sync="dialogVisible_3"
           width="80%"
-          :before-close="handleClose">
-          <div>
+          fullscreen="true"
+          :before-close="handleClose"
+          >
+          <div >
             <div v-if="reply!=''">
               <el-avatar style="float: left;" :size="40" :src="reply.head"></el-avatar>
               <div style="display: flex; flex-direction: column;">
-                <span style="font-size: 18px;">{{reply.uName}}</span>
+                <span style="font-size: 22px;">{{reply.uName}}</span>
                 <span style="font-size: 26px;">{{reply.pName}}</span>
                 <span style="font-size: 20px;">{{reply.content}}</span>
               </div>
               <span style="float: right; font-size: 12px;color:rgb(160,160,160);"> {{reply.cTime}}</span>
             </div>
             <el-divider></el-divider>
-            <div v-if="reply!=''">
+            <div v-if="reply!=''" >
               <div v-if="reply.reply.length>0">
                 <div v-for="item in reply.reply" :key="item" class="text item">
                   <div>
                     <el-col :span="18" style="margin-bottom: 10px;">
                       <el-card shadow="hover" >
                         <div style="display: flex; flex-direction: column;">
-                          <el-avatar style="float: right;" :size="20" :src="reply.head"></el-avatar>
-                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
-                          <span style="font-size: 26px;">{{item.content}}</span>
+                          <el-avatar style="float: right;" :size="36" :src="item.head"></el-avatar>
+                          <span style="float: right; margin-right: 10px; font-size: 20px;color:rgb(160,160,160);">{{item.uName}}</span>
+                          <span style="font-size: 20px;">{{item.content}}</span>
                         </div>
                         <div>
-                          <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.sendTime}}</span>
-                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.floor}}</span>
-                          <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
+                          <span style="float: right; font-size: 16px;color:rgb(160,160,160);">{{item.sendTime}}</span>
+                          <span style="float: right; margin-right: 14px; font-size: 14px;color:rgb(160,160,160);">{{item.floor}}楼</span>
+                          <!-- <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar> -->
                         </div>
                       </el-card>
                     </el-col>
@@ -245,6 +283,60 @@
   export default {
     
     methods: {
+      stopGenerating() {
+        this.controller.abort()
+        this.isStopped = true
+      },
+      restartGenerating() {
+        this.controller = new AbortController()
+        this.sendPost()
+      },
+
+      async sendPost() {
+        this.controller = new AbortController()
+        this.response = ''
+        this.isStopped = false
+        const response = await fetch(restweburl + "streamTest", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json','token': localStorage.getItem("CCNtoken"), 'cID': this.$route.params.classID},
+          // body: JSON.stringify({ name: this.name }),
+          signal: this.controller.signal,
+          
+          
+        })
+        const reader = response.body.getReader()
+        let a=1;let b=2
+        while (b>a) {
+          if (this.isStopped) break
+          const { done, value } = await reader.read()
+          if (done) break
+          this.response += new TextDecoder().decode(value)
+        }
+      },
+
+      ana(){
+        var params4 = new URLSearchParams();
+        params4.append('cID',this.$route.params.classID);
+        axios.post(restweburl + "streamTest",params4)
+        .then((res) => {
+          alert(1)
+          this.anad = res.data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      },
+      appeal(hwID){
+        var params = new URLSearchParams();
+        params.append('hwID',hwID);
+        axios.post(restweburl + "appeal",params)
+        .then((res) => {
+          res
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      },
       sendTopic(){
         var params = new URLSearchParams();
         params.append('cID',this.$route.params.classID);
@@ -511,6 +603,8 @@
 
         data:[],
 
+        anad:'',
+
         role:-1,
 
         classes:[],
@@ -518,7 +612,7 @@
 
         dialogVisible:false,
         dialogVisible_2:false,
-        dialogVisible_3:true,
+        dialogVisible_3:false,
         console:"",
 
         inputQuestion:"",
@@ -528,9 +622,26 @@
 
         not:"",
 
+        name: '',
+        response: '',
+        controller: new AbortController(),
+        isStopped: false
+
       }
     },
     created() {
+
+      
+
+      var params3 = new URLSearchParams();
+          params3.append('cID',this.$route.params.classID);
+          axios.post(restweburl + "getClassNotation",params3)
+          .then((res) => {
+            this.not = res.data.data;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
 
       axios.get(restweburl + "getRole")
           .then((res) => {

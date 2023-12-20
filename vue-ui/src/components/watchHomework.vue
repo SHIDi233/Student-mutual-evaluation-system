@@ -17,6 +17,12 @@
             作业名：{{ this.hwName }}
             <!-- <el-input v-model="hwName" placeholder="作业名"></el-input> -->
         </div>
+        <!-- <div>{{  }}</div>
+        <div>
+            <el-button>
+
+            </el-button> 
+        </div> -->
         <el-divider></el-divider>   
         <div>
             <!-- 作业内容： -->
