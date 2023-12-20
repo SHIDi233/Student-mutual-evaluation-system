@@ -11,7 +11,6 @@
         </el-page-header>
         <el-tabs v-model="activeName">
           <el-tab-pane label="班级成员" name="first">
-            <!-- <el-table  -->
             <el-table 
               :data="tableData"
               style="width: 100%"
