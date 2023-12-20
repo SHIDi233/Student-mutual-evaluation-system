@@ -146,7 +146,7 @@
                   <template slot-scope="scope">
                     <span>{{scope.row.evaScore}}</span>
                     
-                      <el-button  type="text" style="margin-left: 22px;" @click="appeal(scope.row.hwID)">申诉</el-button>
+                      <el-button v-if="scope.row.evaScore!=null" type="text" style="margin-left: 22px;" @click="appeal(scope.row.hwID)">申诉</el-button>
                     
                   </template>
                 </el-table-column>
@@ -166,8 +166,11 @@
 
           <el-tab-pane v-if="this.role===0" label="成绩分析" name="fourth">
             <el-button @click="sendPost()">AI分析</el-button>
-            {{ this.anadx }}
-            <pre style="font-size: 18px;">{{ response }}</pre>
+            <div>
+              <pre style="font-size: 18px;width:60%;white-space: pre-wrap;">{{ response }}</pre>
+              <el-skeleton v-if="this.chatAnime" :rows="3" animated />
+            </div>
+           
           </el-tab-pane>
 
           <el-tab-pane label="讨论区" name="third">
@@ -202,15 +205,12 @@
             </div>
           </el-tab-pane>
         </el-tabs>
+        <el-empty v-if="this.activeName==0" description="看点什么"></el-empty>
         <el-dialog
           title="发起讨论"
           :visible.sync="dialogVisible_2"
           width="30%"
           :before-close="handleClose">
-          <!-- <span style="white-space:pre-wrap;">{{ this.console }}</span>
-          <span slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="dialogVisible = false;refresh()">O K</el-button>
-          </span> -->
           <el-input v-model="inputTheme" placeholder="请输入主题"></el-input>
           <el-input v-model="inputQuestion" placeholder="请输入问题"></el-input>
           <el-button @click="sendTopic()">发送</el-button>
@@ -235,7 +235,7 @@
               <span style="float: right; font-size: 12px;color:rgb(160,160,160);"> {{reply.cTime}}</span>
             </div>
             <el-divider></el-divider>
-            <div v-if="reply!=''" >
+            <div style="margin-bottom: 1000px;" v-if="reply!=''" >
               <div v-if="reply.reply.length>0">
                 <div v-for="item in reply.reply" :key="item" class="text item">
                   <div>
@@ -249,7 +249,6 @@
                         <div>
                           <span style="float: right; font-size: 16px;color:rgb(160,160,160);">{{item.sendTime}}</span>
                           <span style="float: right; margin-right: 14px; font-size: 14px;color:rgb(160,160,160);">{{item.floor}}楼</span>
-                          <!-- <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar> -->
                         </div>
                       </el-card>
                     </el-col>
@@ -257,9 +256,14 @@
                 </div>
               </div>
             </div>
+            
+            <div style="position: fixed;bottom: 0;left: 0;width: 100%;">
+              <div>
+                <el-input v-model="pContent" style="margin-left: 10px ;width: 90%;"></el-input>
+                <el-button @click="recall()" type="primary"  style = "float: right;margin-right: 20px ;">发送</el-button>
+              </div>
+            </div>
           </div>
-
-
         </el-dialog>
         <el-dialog
           title="控制台输出"
@@ -283,6 +287,35 @@
   export default {
     
     methods: {
+      recall(){
+        var params4 = new URLSearchParams();
+        params4.append('pID',this.pID);
+        params4.append('content',this.pContent);
+        axios.post(restweburl + "reply",params4)
+        .then((res) => {
+          if(res.data.msg=="success"){
+            this.$message({
+              message: '发送成功',
+              type: 'success'
+            });
+            this.pContent='';
+            this.openDisscuss(this.pID);
+          }
+          else{
+            this.$message({
+              message: res.data.msg,
+              type: 'warning'
+            });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          this.$message({
+            message: 'error',
+            type: 'warning'
+          });
+        });
+      },
       stopGenerating() {
         this.controller.abort()
         this.isStopped = true
@@ -293,6 +326,8 @@
       },
 
       async sendPost() {
+        this.chatAnime = true;
+
         this.controller = new AbortController()
         this.response = ''
         this.isStopped = false
@@ -301,15 +336,16 @@
           headers: { 'Content-Type': 'application/json','token': localStorage.getItem("CCNtoken"), 'cID': this.$route.params.classID},
           // body: JSON.stringify({ name: this.name }),
           signal: this.controller.signal,
-          
-          
         })
         const reader = response.body.getReader()
         let a=1;let b=2
         while (b>a) {
           if (this.isStopped) break
           const { done, value } = await reader.read()
-          if (done) break
+          if (done){
+            this.chatAnime = false;
+            break;
+          }
           this.response += new TextDecoder().decode(value)
         }
       },
@@ -331,7 +367,18 @@
         params.append('hwID',hwID);
         axios.post(restweburl + "appeal",params)
         .then((res) => {
-          res
+          if(res.data.msg=='success'){
+            this.$message({
+              message: '操作成功',
+              type: 'success'
+            });
+          }
+          else{
+            this.$message({
+              message: res.data.msg,
+              type: 'warning'
+            });
+          }
         })
         .catch(function (error) {
           console.log(error);
@@ -353,6 +400,7 @@
         });
       },
       openDisscuss(id){
+        this.pID = id;
         var params = new URLSearchParams();
                 params.append('pID',id);
                 axios.post(restweburl + "getReply",params)
@@ -363,7 +411,6 @@
                 .catch(function (error) {
                   console.log(error);
                 });
-        
       },
       publish(){
           axios.get(restweburl + "createHomework")
@@ -588,6 +635,10 @@
     data() {
       return {
 
+        activeName:'',
+
+        chatAnime : false,
+
         classID:this.$route.params.classID,
 
         dis:[],
@@ -597,6 +648,9 @@
         ],
         drawer: false,
         nid:"",
+
+        pID:0,
+        pContent:'',
 
         ct:"",
         cd:"",

@@ -9,7 +9,7 @@
         <el-aside>
         </el-aside>
         <el-main>
-            <el-tabs>
+            <el-tabs v-model="activeName">
             <el-tab-pane label="作业内容" name="first">
                 <div class="demo-input-suffix"  >
             作业名：
@@ -78,8 +78,6 @@
             </el-tab-pane>
             <el-tab-pane label="提交情况">
                 <el-button @click="drawer_2=true">开启互评</el-button>
-                <el-button @click="check">查重</el-button>
-                <!-- <el-button @click="caculate()">计算分数</el-button> -->
                 <el-table
                 :data="stus"
                 style="width: 100%"
@@ -259,6 +257,7 @@
                 </div>
             </el-drawer>
         </el-tabs>
+        <el-empty v-if="this.activeName==0" description="看点什么"></el-empty>
         <el-drawer
                 title="返回评语"
                 :visible.sync="drawer_3"
@@ -313,6 +312,8 @@
       data() {
         return {
 
+
+            activeName:'',
             backWord:'',
             sID:0,
             hwID:0,
@@ -487,8 +488,11 @@
                     alert("请求失败")
                 })
             }
-            else{
-                alert("网络错误")
+            else if(response.data.data==1){
+                1
+            }
+            else if(response.data.data==0){
+                1
             }
         }).catch(error => {
             alert(error)
@@ -513,7 +517,18 @@
             var params1 = new URLSearchParams();
             params1.append('hwID',this.$route.params.hwID);
             axios.post(restweburl+'startDuplicateCheck', params1).then(response => {
-                response
+                if(response.data.msg=='success'){
+                    this.$message({
+                        message: '已开启查重',
+                        type: 'success'
+                    });
+                }
+                else{
+                    this.$message({
+                        message: response.data.msg,
+                        type: 'warning'
+                    });
+                }
             }).catch(error => {
                 alert(error)
                 alert("请求失败")
