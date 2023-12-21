@@ -77,7 +77,6 @@
                       </el-button>
                     </el-popconfirm>
                   </template>
-                  
                 </template>
               </el-table-column>
             </el-table>
@@ -153,8 +152,12 @@
               </div>
           </el-tab-pane>
 
-          <el-tab-pane v-if="this.role===0" label="成绩分析" name="fourth">
-            <el-button @click="sendPost()">AI分析</el-button>
+          <!-- 成绩分析 -->
+          <el-tab-pane v-if="this.role===0" label="成绩分析(测试功能)" name="fourth">
+            <el-tooltip class="item" effect="dark" content="Right Top 提示文字" placement="right-start">
+              <!-- <el-button size="small" icon="el-icon-info" circle></el-button> -->
+              <el-button @click="sendPost()">AI分析</el-button>
+            </el-tooltip>
             <div>
               <pre style="font-size: 18px;width:60%;white-space: pre-wrap;">{{ response }}</pre>
               <el-skeleton v-if="this.chatAnime" :rows="3" animated />
@@ -162,26 +165,64 @@
            
           </el-tab-pane>
 
+          <!-- 讨论区 -->
           <el-tab-pane label="讨论区" name="third">
-            <el-button @click="dialogVisible_2=true">发起讨论</el-button>
-            <div v-if="dis.length>0">
-              <div v-for="item in dis" :key="item" class="text item">
+            <div style="padding-bottom: 10px;padding-top: 10px;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);margin:auto;">
+              <div style="margin:auto;width:70%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
                 <div>
-                  <el-col :span="18" style="margin-bottom: 10px;">
-                    <el-card shadow="hover" @click.native="openDisscuss(item.pID)">
-                      <div style="display: flex; flex-direction: column;">
-                        <span style="font-size: 26px;">{{item.pName}}</span>
-                        <span style="font-size: 20px; color:rgb(128,128,128);">{{item.profile}}</span>
-                      </div>
-                      <div>
-                        <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.cTime}}</span>
-                        <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
-                        <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
-                      </div>
-                    </el-card>
-                  </el-col>
+                  <div class="inputDeep">
+                    <el-input
+                      class="inputDeep"
+                      type="textarea"
+                      autosize
+                      placeholder="请输入讨论主题"
+                      v-model="inputTheme"
+                      style="margin-top:10px;font-size:18px;font-weight: bolder;font-family: 'Helvetica Neue'">
+                    </el-input>
+                    <el-input
+                      size="medium"
+                      type="textarea"
+                      :autosize="{minRows: 1}"
+                      placeholder="请输入问题"
+                      v-model="inputQuestion"
+                      style="margin-top:10px;font-size:15px;font-family: 'Helvetica Neue'">
+                    </el-input>
+                  </div>
                 </div>
+                <div>
+                  <el-button style="float: right;margin-right: 10px;margin-bottom: 10px;" size='small' type="primary" @click="sendTopic()">发起讨论</el-button>
+                </div>
+                <div style="clear:both;"></div>
               </div>
+              <div style="margin:auto;padding-bottom: 10px;width:70%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
+              <div v-if="dis.length>0" style="margin:auto;margin-top: 20px;width:100%;">
+              <div v-for="item in dis" :key="item" class="text item" style="margin:auto;width:100%">
+                <!-- <div style="margin:auto;width:100%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)"> -->
+                  <div style="margin:auto;width:98%;margin-bottom: 10px;">
+                    <el-col style="margin:auto;width:100%;margin-top: 10px;">
+                      <el-card style="margin: auto;" shadow="hover" @click.native="openDisscuss(item.pID)">
+                        <div style="display: flex; flex-direction: column;">
+                          <span style="font-size: 26px;">{{item.pName}}</span>
+                          <span style="margin-top: 14px;margin-left: 5px; font-size: 15px; color:rgb(128,128,128);">{{item.profile}}</span>
+                        </div>
+                        <div>
+                          <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.cTime}}</span>
+                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
+                          <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
+                        </div>
+                        <div style="clear:both;"></div>
+                      </el-card>
+                      <div style="clear:both;"></div>
+                    </el-col>
+                  </div>
+                  <div style="clear:both;"></div>
+                <!-- </div> -->
+                <!-- <el-divider></el-divider> -->
+                <div style="clear:both;"></div>
+              </div>
+              <div style="clear:both;"></div>
+            </div>
+          </div>
             </div>
           </el-tab-pane>
 
@@ -200,8 +241,8 @@
                   <el-button type="primary" style="float:right;margin-bottom: 10px;parent { overflow: hidden }" @click="sendNotation()">发布</el-button>
                   <div style="clear:both;"></div>
                 </div>
-                <div v-if="this.role===0">
-                  {{ this.not }}
+                <div style="margin-top: 10px;" v-if="this.role===0">
+                  <p style="white-space: pre-wrap;">{{ this.not }}</p>
                 </div>
               </div>
             </div>
@@ -228,12 +269,12 @@
           :before-close="handleClose"
           >
           <div >
-            <div v-if="reply!=''">
+            <div style="margin:auto" v-if="reply!=''">
               <el-avatar style="float: left;" :size="40" :src="reply.head"></el-avatar>
               <div style="display: flex; flex-direction: column;">
-                <span style="font-size: 22px;">{{reply.uName}}</span>
-                <span style="font-size: 26px;">{{reply.pName}}</span>
-                <span style="font-size: 20px;">{{reply.content}}</span>
+                <span style="font-size: 18px;">{{reply.uName}}</span>
+                <span style="font-size: 24px;margin-top: 10px;margin-left: 40px;">{{reply.pName}}</span>
+                <span style="font-size: 18px;margin-top: 8px;margin-bottom: 10px;margin-left: 40px;">{{reply.content}}</span>
               </div>
               <span style="float: right; font-size: 12px;color:rgb(160,160,160);"> {{reply.cTime}}</span>
             </div>
@@ -242,12 +283,12 @@
               <div v-if="reply.reply.length>0">
                 <div v-for="item in reply.reply" :key="item" class="text item">
                   <div>
-                    <el-col :span="18" style="margin-bottom: 10px;">
-                      <el-card shadow="hover" >
+                    <el-col  style="margin-bottom: 10px;width:100%">
+                      <el-card shadow="hover">
+                        <el-avatar style="float: left;" :size="36" :src="item.head"></el-avatar>
                         <div style="display: flex; flex-direction: column;">
-                          <el-avatar style="float: right;" :size="36" :src="item.head"></el-avatar>
-                          <span style="float: right; margin-right: 10px; font-size: 20px;color:rgb(160,160,160);">{{item.uName}}</span>
-                          <span style="font-size: 20px;">{{item.content}}</span>
+                          <span style="float: right; margin-left: 10px; font-size: 18px;color:rgb(160,160,160);">{{item.uName}}</span>
+                          <span style="margin-left: 10px;font-size: 18px;">{{item.content}}</span>
                         </div>
                         <div>
                           <span style="float: right; font-size: 16px;color:rgb(160,160,160);">{{item.sendTime}}</span>
@@ -280,6 +321,13 @@
         </el-dialog>
     </div>
 </template>
+
+<style scoped>
+ .inputDeep>>>.el-textarea__inner{
+    border:0;
+    resize: none;
+  } 
+</style>
 
 
 <script>
@@ -388,6 +436,8 @@
         });
       },
       sendTopic(){
+        if(this.inputQuestion=='' || this.inputTheme=='')
+          return;
         var params = new URLSearchParams();
         params.append('cID',this.$route.params.classID);
         params.append('content',this.inputQuestion);
@@ -395,8 +445,30 @@
         params.append('teacherOnly',1);
         axios.post(restweburl + "createPost",params)
         .then((res) => {
-          this.tableData = res.data.data;
-          this.loading=false;
+          if(res.data.msg=='success'){
+            this.$message({
+              message: '发布成功',
+              type: 'success'
+            });
+            this.inputQuestion=''; 
+            this.inputTheme='';
+            var params1 = new URLSearchParams();
+            params1.append('cID',this.$route.params.classID);
+            axios.post(restweburl + "getPosts",params1)
+              .then((res) => {
+                this.dis = res.data.data;
+                this.console.log(res.data.data)
+              })
+            .catch(function (error) {
+                console.log(error);
+            })
+          }
+          else{
+            this.$message({
+              message: res.data.msg,
+              type: 'warning'
+            });
+          }
         })
         .catch(function (error) {
           console.log(error);

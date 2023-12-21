@@ -6,14 +6,14 @@
             </el-menu>
         </el-header>
         <el-container>
-        <el-aside>
+        <el-aside style="width:200px">
         </el-aside>
         <el-main>
             <el-tabs v-model="activeName">
             <el-tab-pane label="作业内容" name="first">
                 <div class="demo-input-suffix"  >
             作业名：
-            <el-input v-model="hwName" placeholder="作业名"></el-input>
+            <el-input style="margin-top: 10px;" v-model="hwName" placeholder="作业名"></el-input>
         </div>
         <input
             type="file"
@@ -77,10 +77,9 @@
   </div>
             </el-tab-pane>
             <el-tab-pane label="提交情况">
-                <el-button @click="drawer_2=true">开启互评</el-button>
                 <el-table
                 :data="stus"
-                style="width: 100%"
+                style="margin-left: 3px;margin-top: 3px; width: 90%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)"
                 max-height="8 50"
                 v-loading="loading"
                 :default-sort = "{prop: 'evaScore', order: 'descending'}">
@@ -124,7 +123,7 @@
                     <template slot-scope="scope">
                         {{ scope.row.evaScore }}
                         <div v-if="scope.row.isAppeal">
-                            <el-badge value="!" class="item">
+                            <el-badge value="!" cla开启互评ss="item">
                             </el-badge>
                             <el-button type="text" @click="sID=scope.row.uID;hwID=scope.row.hwID;drawer_3=true">处理申诉</el-button>
                         </div>
@@ -135,6 +134,10 @@
                     fixed="right"
                     label="操作"
                     width="120">
+                    <template slot="header" slot-scope="scope" >
+                        <el-button type="primary" @click="drawer_2=true">开启互评</el-button>
+                        <el-button v-if="1<0">{{ scope.className }}</el-button>
+                    </template>
                     <template slot-scope="scope">
                     <el-button
                     @click.native.prevent="startRow(scope.row)"
@@ -154,11 +157,9 @@
             </el-tab-pane>
 
             <el-tab-pane label="查重情况">
-                <el-button @click="check">查重</el-button>
-                <!-- <el-button @click="caculate()">计算分数</el-button> -->
                 <el-table
                 :data="checked"
-                style="white-space: pre-wrap;width: 100%;"
+                style="white-space: pre-wrap;margin-left: 3px;margin-top: 3px;width: 90%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)"
                 max-height="8 50"
                 v-loading="loading"
                 :default-sort = "{prop: 'evaScore', order: 'descending'}"
@@ -189,6 +190,10 @@
                     fixed="right"
                     label="操作"
                     width="120">
+                    <template slot="header" slot-scope="scope" >
+                        <el-button @click="check">查重</el-button>
+                        <el-button v-if="1<0">{{ scope.className }}</el-button>
+                    </template>
                     <template slot-scope="scope">
                     <el-button
                     @click.native.prevent="dialogVisible_3=true;s1ID = scope.row.sID1;s2ID = scope.row.sID2;s1Name = scope.row.sName1;s2Name = scope.row.sName2;report()"
@@ -253,7 +258,7 @@
                     </el-date-picker>
                 </div>
                 <div>
-                    <el-button  style="margin-top: 10px;margin-right: 20px;float: right;" type="primary" @click="startEvaluation()">开始互评</el-button>
+                    <el-button  style="margin-top: 10px;margin-right: 20px;float: right;" type="primary" @click="startEvaluation()">开启互评</el-button>
                 </div>
             </el-drawer>
         </el-tabs>
