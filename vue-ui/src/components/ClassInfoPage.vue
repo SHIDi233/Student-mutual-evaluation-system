@@ -9,13 +9,17 @@
           />
         <el-page-header @back="goBack" :content="ct" style="margin-bottom: 20px;">
         </el-page-header>
-        <el-tabs v-model="activeName">
+
+        <!-- 班级成员 -->
+        <el-tabs type="border-card" v-model="activeName">
           <el-tab-pane label="班级成员" name="first">
             <el-table 
+              
               :data="tableData"
-              style="width: 100%"
+              style="width: 980px;margin: 0 auto;font-size: 15px;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)"
               max-height="8 50"
-              v-loading="loading">
+              v-loading="loading"
+              :row-style="{height:'90px'}">
               <el-table-column
                 fixed
                 prop="role"
@@ -52,6 +56,10 @@
                 
                 label="操作"
                 width="220">
+                <template slot="header" slot-scope="scope" >
+                  <el-button size="mini" style="margin-right: 100px;margin-top: 10px;float: right;" @click="upXls()">一键导入同学</el-button>
+                  <el-button v-if="1<0">{{ scope.className }}</el-button>
+                </template>
                 <template slot-scope="scope">
                   <el-button
                   @click.native.prevent="startRow(scope.$index, scope.row)"
@@ -69,28 +77,18 @@
                       </el-button>
                     </el-popconfirm>
                   </template>
-                  
                 </template>
               </el-table-column>
             </el-table>
-            <el-button style="margin-right: 30px;margin-top: 10px;float: right;" @click="upXls()">一键导入同学</el-button>
           </el-tab-pane>
+
+          <!-- 班级作业 -->
           <el-tab-pane label="作业" name="second">
             <div>
-              <el-button v-if="!this.role==0" type="primary"  @click="publish()" :loading="loading" :disabled="this.role==0">新建作业</el-button>
-              <!-- <el-select v-model="classes" multiple placeholder="请选择">
-                        <el-option
-                        v-for="item in options"
-                        :key="item.classID"
-                        :label="item.introduction"
-                        :value="item.classID">
-                        </el-option>
-                    </el-select> -->
               <el-table
                 v-loading="loading"
                 :data="data"
                 :default-sort = "{prop: 'hwID', order: 'descending'}"
-                border
                 style="width: 100%">
                 <el-table-column
                   prop="hwID"
@@ -100,12 +98,12 @@
                 <el-table-column
                   prop="name"
                   label="作业名称"
-                  width="120">
+                  width="220">
                 </el-table-column>
                 <el-table-column
                   prop="ddl"
                   label="截止时间"
-                  width="120">
+                  width="220">
                 </el-table-column>
                 <el-table-column v-if="this.role===1"
                   prop="isPublish"
@@ -126,92 +124,175 @@
                 <el-table-column
                   prop="cTime"
                   label="创建时间"
-                  width="120">
+                  width="220">
                 </el-table-column>
-                
+                <el-table-column v-if="this.role===0"
+                  prop="evaScore"
+                  label="分数"
+                  width="120">
+                  <template slot-scope="scope">
+                    <span>{{scope.row.evaScore}}</span>
+                      <el-button v-if="scope.row.evaScore!=null" type="text" style="margin-left: 22px;" @click="appeal(scope.row.hwID)">申诉</el-button>
+                  </template>
+                </el-table-column>
                 <el-table-column
                   fixed="right"
                   label="操作"
                   width="180">
-                  <template slot-scope="scope">
-                    <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+                  <template slot="header" slot-scope="scope" >
+                    <el-button size="mini" v-if="!role==0" type="primary"  @click="publish()" :loading="loading" :disabled="role==0">新建作业</el-button>
+                    <el-button v-if="1<0">{{ scope.className }}</el-button>
+                  </template>
+                  <template slot-scope="scope" >
+                    <el-button  @click="handleClick(scope.row)" style="height:100%;margin-left : 25px;" type="text" size="small">查看</el-button>
                     <el-button v-if="scope.row.isSubmit&&role==0" @click="handleClick_2(scope.row)" type="text" size="small">开始互评</el-button>
                   </template>
                 </el-table-column>
               </el-table>
               </div>
           </el-tab-pane>
+
+          <!-- 成绩分析 -->
+          <el-tab-pane v-if="this.role===0" label="成绩分析(测试功能)" name="fourth">
+            <el-tooltip class="item" effect="dark" content="基于ChatGLM3的成绩分析功能，仅用于测试参考" placement="right-start">
+              <!-- <el-button size="small" icon="el-icon-info" circle></el-button> -->
+              <el-button @click="sendPost()">AI分析</el-button>
+            </el-tooltip>
+            <div>
+              <pre style="font-size: 18px;width:60%;white-space: pre-wrap;">{{ response }}</pre>
+              <el-skeleton v-if="this.chatAnime" :rows="3" animated />
+            </div>
+           
+          </el-tab-pane>
+
+          <!-- 讨论区 -->
           <el-tab-pane label="讨论区" name="third">
-            <el-button @click="dialogVisible_2=true">发起讨论</el-button>
-            <div v-if="dis.length>0">
-              <div v-for="item in dis" :key="item" class="text item">
+            <div style="padding-bottom: 10px;padding-top: 10px;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);margin:auto;">
+              <div style="margin:auto;width:70%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
                 <div>
-                  <el-col :span="18" style="margin-bottom: 10px;">
-                    <el-card shadow="hover" @click.native="openDisscuss(item.pID)">
-                      <div style="display: flex; flex-direction: column;">
-                        <span style="font-size: 26px;">{{item.pName}}</span>
-                        <span style="font-size: 20px; color:rgb(128,128,128);">{{item.profile}}</span>
-                      </div>
-                      <div>
-                        <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.cTime}}</span>
-                        <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
-                        <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
-                      </div>
-                    </el-card>
-                  </el-col>
+                  <div class="inputDeep">
+                    <el-input
+                      class="inputDeep"
+                      type="textarea"
+                      autosize
+                      placeholder="请输入讨论主题"
+                      v-model="inputTheme"
+                      style="margin-top:10px;font-size:18px;font-weight: bolder;font-family: 'Helvetica Neue'">
+                    </el-input>
+                    <el-input
+                      size="medium"
+                      type="textarea"
+                      :autosize="{minRows: 1}"
+                      placeholder="请输入问题"
+                      v-model="inputQuestion"
+                      style="margin-top:10px;font-size:15px;font-family: 'Helvetica Neue'">
+                    </el-input>
+                  </div>
+                </div>
+                <div>
+                  <el-button style="float: right;margin-right: 10px;margin-bottom: 10px;" size='small' type="primary" @click="sendTopic()">发起讨论</el-button>
+                </div>
+                <div style="clear:both;"></div>
+              </div>
+              <div style="margin:auto;padding-bottom: 10px;width:70%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
+              <div v-if="dis.length>0" style="margin:auto;margin-top: 20px;width:100%;">
+              <div v-for="item in dis" :key="item" class="text item" style="margin:auto;width:100%">
+                <!-- <div style="margin:auto;width:100%;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)"> -->
+                  <div style="margin:auto;width:98%;margin-bottom: 10px;">
+                    <el-col style="margin:auto;width:100%;margin-top: 10px;">
+                      <el-card style="margin: auto;" shadow="hover" @click.native="openDisscuss(item.pID)">
+                        <div style="display: flex; flex-direction: column;">
+                          <span style="font-size: 26px;">{{item.pName}}</span>
+                          <span style="margin-top: 14px;margin-left: 5px; font-size: 15px; color:rgb(128,128,128);">{{item.profile}}</span>
+                        </div>
+                        <div>
+                          <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.cTime}}</span>
+                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
+                          <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
+                        </div>
+                        <div style="clear:both;"></div>
+                      </el-card>
+                      <div style="clear:both;"></div>
+                    </el-col>
+                  </div>
+                  <div style="clear:both;"></div>
+                <!-- </div> -->
+                <!-- <el-divider></el-divider> -->
+                <div style="clear:both;"></div>
+              </div>
+              <div style="clear:both;"></div>
+            </div>
+          </div>
+            </div>
+          </el-tab-pane>
+
+          <!-- 公告栏 -->
+          <el-tab-pane label="公告栏" name="forth">
+            <div style="box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
+              <div style ="margin-left: 20px;margin-right: 20px;margin-bottom: 0px;">
+                <div v-if="this.role===1" >
+                  <el-input
+                    style ="margin-top : 20px;margin-bottom: 10px;"
+                    type="textarea"
+                    :rows="18"
+                    placeholder="请输入内容"
+                    v-model="not">
+                  </el-input>
+                  <el-button type="primary" style="float:right;margin-bottom: 10px;parent { overflow: hidden }" @click="sendNotation()">发布</el-button>
+                  <div style="clear:both;"></div>
+                </div>
+                <div style="margin-top: 10px;" v-if="this.role===0">
+                  <p style="white-space: pre-wrap;">{{ this.not }}</p>
                 </div>
               </div>
             </div>
-          </el-tab-pane>
-          <el-tab-pane label="公告栏" name="forth">
-            <el-input v-model="not"></el-input>
-            <el-button @click="sendNotation()">发布</el-button>
+            
           </el-tab-pane>
         </el-tabs>
+        <el-empty v-if="this.activeName==0" description="看点什么"></el-empty>
         <el-dialog
           title="发起讨论"
           :visible.sync="dialogVisible_2"
           width="30%"
           :before-close="handleClose">
-          <!-- <span style="white-space:pre-wrap;">{{ this.console }}</span>
-          <span slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="dialogVisible = false;refresh()">O K</el-button>
-          </span> -->
           <el-input v-model="inputTheme" placeholder="请输入主题"></el-input>
           <el-input v-model="inputQuestion" placeholder="请输入问题"></el-input>
           <el-button @click="sendTopic()">发送</el-button>
         </el-dialog>
+        
+        <!-- 回复回帖 -->
         <el-dialog
           :title="pName"
           :visible.sync="dialogVisible_3"
           width="80%"
-          :before-close="handleClose">
-          <div>
-            <div v-if="reply!=''">
+          fullscreen="true"
+          :before-close="handleClose"
+          >
+          <div >
+            <div style="margin:auto" v-if="reply!=''">
               <el-avatar style="float: left;" :size="40" :src="reply.head"></el-avatar>
               <div style="display: flex; flex-direction: column;">
                 <span style="font-size: 18px;">{{reply.uName}}</span>
-                <span style="font-size: 26px;">{{reply.pName}}</span>
-                <span style="font-size: 20px;">{{reply.content}}</span>
+                <span style="font-size: 24px;margin-top: 10px;margin-left: 40px;">{{reply.pName}}</span>
+                <span style="font-size: 18px;margin-top: 8px;margin-bottom: 10px;margin-left: 40px;">{{reply.content}}</span>
               </div>
               <span style="float: right; font-size: 12px;color:rgb(160,160,160);"> {{reply.cTime}}</span>
             </div>
             <el-divider></el-divider>
-            <div v-if="reply!=''">
+            <div style="margin-bottom: 1000px;" v-if="reply!=''" >
               <div v-if="reply.reply.length>0">
                 <div v-for="item in reply.reply" :key="item" class="text item">
                   <div>
-                    <el-col :span="18" style="margin-bottom: 10px;">
-                      <el-card shadow="hover" >
+                    <el-col  style="margin-bottom: 10px;width:100%">
+                      <el-card shadow="hover">
+                        <el-avatar style="float: left;" :size="36" :src="item.head"></el-avatar>
                         <div style="display: flex; flex-direction: column;">
-                          <el-avatar style="float: right;" :size="20" :src="reply.head"></el-avatar>
-                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.uName}}</span>
-                          <span style="font-size: 26px;">{{item.content}}</span>
+                          <span style="float: right; margin-left: 10px; font-size: 18px;color:rgb(160,160,160);">{{item.uName}}</span>
+                          <span style="margin-left: 10px;font-size: 18px;">{{item.content}}</span>
                         </div>
                         <div>
-                          <span style="float: right; font-size: 12px;color:rgb(160,160,160);">{{item.sendTime}}</span>
-                          <span style="float: right; margin-right: 10px; font-size: 14px;color:rgb(160,160,160);">{{item.floor}}</span>
-                          <el-avatar style="float: right;" :size="20" :src="item.head"></el-avatar>
+                          <span style="float: right; font-size: 16px;color:rgb(160,160,160);">{{item.sendTime}}</span>
+                          <span style="float: right; margin-right: 14px; font-size: 14px;color:rgb(160,160,160);">{{item.floor}}楼</span>
                         </div>
                       </el-card>
                     </el-col>
@@ -219,9 +300,14 @@
                 </div>
               </div>
             </div>
+            
+            <div style="position: fixed;bottom: 0;left: 0;width: 100%;">
+              <div>
+                <el-input v-model="pContent" style="margin-left: 10px ;width: 90%;"></el-input>
+                <el-button @click="recall()" type="primary"  style = "float: right;margin-right: 20px ;">发送</el-button>
+              </div>
+            </div>
           </div>
-
-
         </el-dialog>
         <el-dialog
           title="控制台输出"
@@ -236,6 +322,13 @@
     </div>
 </template>
 
+<style scoped>
+ .inputDeep>>>.el-textarea__inner{
+    border:0;
+    resize: none;
+  } 
+</style>
+
 
 <script>
   import axios from 'axios'
@@ -245,7 +338,109 @@
   export default {
     
     methods: {
+      recall(){
+        var params4 = new URLSearchParams();
+        params4.append('pID',this.pID);
+        params4.append('content',this.pContent);
+        axios.post(restweburl + "reply",params4)
+        .then((res) => {
+          if(res.data.msg=="success"){
+            this.$message({
+              message: '发送成功',
+              type: 'success'
+            });
+            this.pContent='';
+            this.openDisscuss(this.pID);
+          }
+          else{
+            this.$message({
+              message: res.data.msg,
+              type: 'warning'
+            });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          this.$message({
+            message: 'error',
+            type: 'warning'
+          });
+        });
+      },
+      stopGenerating() {
+        this.controller.abort()
+        this.isStopped = true
+      },
+      restartGenerating() {
+        this.controller = new AbortController()
+        this.sendPost()
+      },
+
+      async sendPost() {
+        this.chatAnime = true;
+
+        this.controller = new AbortController()
+        this.response = ''
+        this.isStopped = false
+        const response = await fetch(restweburl + "streamTest", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json','token': localStorage.getItem("CCNtoken"), 'cID': this.$route.params.classID},
+          // body: JSON.stringify({ name: this.name }),
+          signal: this.controller.signal,
+        })
+        const reader = response.body.getReader()
+        let a=1;let b=2
+        let k=0
+        while (b>a) {
+          if (this.isStopped) break
+          const { done, value } = await reader.read()
+          if (done){
+            this.chatAnime = false;
+            break;
+          }
+          k+=1;
+          if(k>1)
+            this.response += new TextDecoder().decode(value)
+        }
+      },
+
+      ana(){
+        var params4 = new URLSearchParams();
+        params4.append('cID',this.$route.params.classID);
+        axios.post(restweburl + "streamTest",params4)
+        .then((res) => {
+          alert(1)
+          this.anad = res.data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      },
+      appeal(hwID){
+        var params = new URLSearchParams();
+        params.append('hwID',hwID);
+        axios.post(restweburl + "appeal",params)
+        .then((res) => {
+          if(res.data.msg=='success'){
+            this.$message({
+              message: '操作成功',
+              type: 'success'
+            });
+          }
+          else{
+            this.$message({
+              message: res.data.msg,
+              type: 'warning'
+            });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      },
       sendTopic(){
+        if(this.inputQuestion=='' || this.inputTheme=='')
+          return;
         var params = new URLSearchParams();
         params.append('cID',this.$route.params.classID);
         params.append('content',this.inputQuestion);
@@ -253,14 +448,37 @@
         params.append('teacherOnly',1);
         axios.post(restweburl + "createPost",params)
         .then((res) => {
-          this.tableData = res.data.data;
-          this.loading=false;
+          if(res.data.msg=='success'){
+            this.$message({
+              message: '发布成功',
+              type: 'success'
+            });
+            this.inputQuestion=''; 
+            this.inputTheme='';
+            var params1 = new URLSearchParams();
+            params1.append('cID',this.$route.params.classID);
+            axios.post(restweburl + "getPosts",params1)
+              .then((res) => {
+                this.dis = res.data.data;
+                this.console.log(res.data.data)
+              })
+            .catch(function (error) {
+                console.log(error);
+            })
+          }
+          else{
+            this.$message({
+              message: res.data.msg,
+              type: 'warning'
+            });
+          }
         })
         .catch(function (error) {
           console.log(error);
         });
       },
       openDisscuss(id){
+        this.pID = id;
         var params = new URLSearchParams();
                 params.append('pID',id);
                 axios.post(restweburl + "getReply",params)
@@ -271,7 +489,6 @@
                 .catch(function (error) {
                   console.log(error);
                 });
-        
       },
       publish(){
           axios.get(restweburl + "createHomework")
@@ -496,6 +713,10 @@
     data() {
       return {
 
+        activeName:'first',
+
+        chatAnime : false,
+
         classID:this.$route.params.classID,
 
         dis:[],
@@ -506,10 +727,15 @@
         drawer: false,
         nid:"",
 
+        pID:0,
+        pContent:'',
+
         ct:"",
         cd:"",
 
         data:[],
+
+        anad:'',
 
         role:-1,
 
@@ -518,7 +744,7 @@
 
         dialogVisible:false,
         dialogVisible_2:false,
-        dialogVisible_3:true,
+        dialogVisible_3:false,
         console:"",
 
         inputQuestion:"",
@@ -528,9 +754,26 @@
 
         not:"",
 
+        name: '',
+        response: '',
+        controller: new AbortController(),
+        isStopped: false
+
       }
     },
     created() {
+
+      
+
+      var params3 = new URLSearchParams();
+          params3.append('cID',this.$route.params.classID);
+          axios.post(restweburl + "getClassNotation",params3)
+          .then((res) => {
+            this.not = res.data.data;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
 
       axios.get(restweburl + "getRole")
           .then((res) => {

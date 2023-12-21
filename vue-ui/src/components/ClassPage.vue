@@ -1,22 +1,53 @@
 <template>
   <div>
-    <router-view></router-view>
-
-    <div>
-      <!-- <el-button type="primary"  @click="drawer_2 = true">加入班级</el-button> -->
-      <el-button type="primary" @click="drawer_2 = true" style="float: right;margin-left: 10px;margin-bottom: 10px;">加入班级</el-button>
-      <el-button v-if="!b" @click="drawer = true " :loading="loading" :disabled="b" style="float: right;margin-left: 10px;">新建班级</el-button>
-    </div>
-    <div style="margin-top: 10px;">
+    <!-- 班级列表 -->
+    <div style="margin-top: 10px;margin: 0 auto;">
       <el-table
         v-loading="lodingTable"
-        :data="tableData"
-        border
-        style="width: 100%">
+        :data="tableData.filter(data => !search || data.className.toLowerCase().includes(search.toLowerCase())) || data.classID==search"
+        style="width: 1050px;margin: 0 auto;font-size: 15px;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)"
+        :row-style="{height:'80px'}"
+        :cell-style="{padding:'0px'}">
+        <el-table-column type="expand">
+        <template slot-scope="props">
+          <el-form label-position="left" inline class="demo-table-expand">
+            <div style="margin-left:50px;">
+              <el-form-item label="班级编号:">
+                <span>{{ props.row.classID }}</span>
+              </el-form-item>
+              <el-form-item label="课程名字:">
+                <span>{{ props.row.className }}</span>
+              </el-form-item>
+              <el-form-item label="课程简介:">
+                <span>{{ props.row.introduction }}</span>
+              </el-form-item>
+              <el-divider></el-divider>
+              <el-form-item label="授课老师:">
+                <span>{{ props.row.teacher }}</span>
+              </el-form-item>
+              <el-form-item label="班级人数:">
+                <span>{{ props.row.numOfStu }}</span>
+              </el-form-item>
+            </div>
+            <div style="float:right;margin-left:30px;">
+              <!-- <template> -->
+                <el-popconfirm style="margin-right:30px;" title="确定删除班级吗" @confirm="handleDelete(props.row)">
+                  <!-- <el-button slot="reference"  type="text" size="small">删除</el-button> -->
+                  <el-button slot="reference"
+                    size="mini"
+                    type="danger"
+                    @click="handleDelete(scope.row)">删除班级</el-button>
+                </el-popconfirm>
+              <!-- </template> -->
+            </div>
+          </el-form>
+        </template>
+      </el-table-column>
         <el-table-column
           prop="classID"
           label="班级编号"
-          width="120">
+          width="120"
+          >
         </el-table-column>
         <el-table-column
           prop="className"
@@ -26,30 +57,33 @@
         <el-table-column
           prop="introduction"
           label="简介"
-          width="120">
+          width="320">
         </el-table-column>
         <el-table-column
-          fixed="right"
           label="操作"
-          width="100">
+          width="400">
+          <template slot="header" slot-scope="scope" >
+            <el-button size="mini" type="primary" @click="drawer_2 = true" style="float: right;margin-left: 10px;margin-bottom: 10px;">加入班级</el-button>
+            <el-button v-if="!b" size="mini" @click="drawer = true " :loading="loading" :disabled="b" style="float: right;margin-left: 10px;">新建班级</el-button>
+            <el-input 
+              size="mini"
+              v-model="search"
+              style="width:200px;float: right;"
+              placeholder="输入课程名字搜索"/>
+            <el-button v-if="1<0">{{ scope.className }}</el-button>
+          </template>
           <template slot-scope="scope">
-            <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-            <template>
-              <el-popconfirm style="margin-left: 18px;" title="确定删除班级吗" @confirm="handleDelete(scope.row)">
-                <el-button slot="reference"  type="text" size="small">删除</el-button>
-              </el-popconfirm>
-            </template>
-            <!-- <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button> -->
+            <el-button style="float:right;margin-right:100px;" @click="handleClick(scope.row)" type="text" size="small">进入</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
     
+    <!-- 创建班级 -->
     <el-drawer
       title="创建页"
       :visible.sync="drawer"
-      :direction="direction"
-      :before-close="handleClose">
+      :direction="direction">
       <span style="margin-left: 20px;">由此来创建一个新的班级!</span>
       <el-divider></el-divider>
       <div style="margin-left: 20px;margin-right: 20px;">
@@ -70,14 +104,14 @@
           v-model="textarea">
         </el-input>
       </div>
-      
       <el-button style="float:right;margin-right: 20px; margin-top: 10px;" type="primary" @click="Click()" :loading="bc" >创建</el-button>
     </el-drawer>
+
+    <!-- 加入班级 -->
     <el-drawer
       title="加入页"
       :visible.sync="drawer_2"
-      :direction="direction"
-      :before-close="handleClose">
+      :direction="direction">
       <span style="margin-left: 20px;">由此来加入一个新的班级!</span>
       <div style="margin-left: 20px;margin-top: 10px;">
         <el-input 
@@ -94,13 +128,26 @@
         </el-descriptions>
         <el-divider></el-divider>
       </div>
-      
-      
       <el-button style="float:right;margin-right: 20px; margin-top: 10px;" type="primary" @click="Click_2()" :loading="bc_2" :disabled="b_2" >加入</el-button>
     </el-drawer>
   </div>
   
 </template>
+
+<style>
+  .demo-table-expand {
+    font-size: 0;
+  }
+  .demo-table-expand label {
+    width: 90px;
+    color: #99a9bf;
+  }
+  .demo-table-expand .el-form-item {
+    margin-right: 0;
+    margin-bottom: 0;
+    width: 50%;
+  }
+</style>
 
 <script>
     import axios from 'axios'
@@ -185,14 +232,6 @@
                 this.introduction = '课程简介：'+res.data.data.introduction;
                 this.b_2 = false;
                 this.bc_2 = false;
-              // this.drawer=false;
-              // axios.get(restweburl + "getClasses")
-              // .then((res) => {
-              //     this.tableData = res.data.data;
-              // })
-              // .catch(function (error) {
-              //     console.log(error);
-              // });
             }
             else{
               this.bc_2 = false;
@@ -278,6 +317,8 @@
         classdata:[],
 
         lodingTable:true,
+
+        search: ''
       }
     }
   }
