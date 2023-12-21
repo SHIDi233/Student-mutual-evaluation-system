@@ -21,7 +21,16 @@
         </el-header>
         <el-container>
             <el-aside width="200px">
-
+                <el-card shadow="hover" style="width: 90%;">
+                    <span>文嘉《明日歌》</span>
+                    <div style="font-size: 18px;text-align: center; margin-top: 35px;">
+                        明日复明日
+                    </div>
+                    <div style="font-size: 18px;text-align: center;">明日何其多</div>
+                    <div style="font-size: 18px;text-align: center;">我生待明日</div>
+                    <div style="font-size: 18px;text-align: center;">万事成蹉跎</div>
+                    <div style="margin-top: 35px;"></div>
+                </el-card>
             </el-aside>
             <el-main>
                 <router-view></router-view>

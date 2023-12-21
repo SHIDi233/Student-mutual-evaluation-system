@@ -9,13 +9,17 @@
           />
         <el-page-header @back="goBack" :content="ct" style="margin-bottom: 20px;">
         </el-page-header>
-        <el-tabs v-model="activeName">
-          <el-tab-pane label="班级成员" name="first111">
+
+        <!-- 班级成员 -->
+        <el-tabs type="border-card" v-model="activeName">
+          <el-tab-pane label="班级成员" name="first">
             <el-table 
+              
               :data="tableData"
-              style="width: 100%"
+              style="width: 980px;margin: 0 auto;font-size: 15px;box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)"
               max-height="8 50"
-              v-loading="loading">
+              v-loading="loading"
+              :row-style="{height:'90px'}">
               <el-table-column
                 fixed
                 prop="role"
@@ -52,6 +56,10 @@
                 
                 label="操作"
                 width="220">
+                <template slot="header" slot-scope="scope" >
+                  <el-button size="mini" style="margin-right: 100px;margin-top: 10px;float: right;" @click="upXls()">一键导入同学</el-button>
+                  <el-button v-if="1<0">{{ scope.className }}</el-button>
+                </template>
                 <template slot-scope="scope">
                   <el-button
                   @click.native.prevent="startRow(scope.$index, scope.row)"
@@ -73,24 +81,15 @@
                 </template>
               </el-table-column>
             </el-table>
-            <el-button style="margin-right: 30px;margin-top: 10px;float: right;" @click="upXls()">一键导入同学</el-button>
           </el-tab-pane>
+
+          <!-- 班级作业 -->
           <el-tab-pane label="作业" name="second">
             <div>
-              <el-button v-if="!this.role==0" type="primary"  @click="publish()" :loading="loading" :disabled="this.role==0">新建作业</el-button>
-              <!-- <el-select v-model="classes" multiple placeholder="请选择">
-                        <el-option
-                        v-for="item in options"
-                        :key="item.classID"
-                        :label="item.introduction"
-                        :value="item.classID">
-                        </el-option>
-                    </el-select> -->
               <el-table
                 v-loading="loading"
                 :data="data"
                 :default-sort = "{prop: 'hwID', order: 'descending'}"
-                border
                 style="width: 100%">
                 <el-table-column
                   prop="hwID"
@@ -100,12 +99,12 @@
                 <el-table-column
                   prop="name"
                   label="作业名称"
-                  width="120">
+                  width="220">
                 </el-table-column>
                 <el-table-column
                   prop="ddl"
                   label="截止时间"
-                  width="120">
+                  width="220">
                 </el-table-column>
                 <el-table-column v-if="this.role===1"
                   prop="isPublish"
@@ -126,37 +125,27 @@
                 <el-table-column
                   prop="cTime"
                   label="创建时间"
-                  width="120">
+                  width="220">
                 </el-table-column>
-                <!-- <el-table-column v-if="this.role===1"
-                  prop="evaScore"
-                  label="分数"
-                  width="120">
-                  <template slot-scope="scope">
-                    <span>{{scope.row.evaScore}}</span>
-                    
-                      <el-button  type="text" style="margin-left: 22px;" @click="appeal(scope.row.hwID)">申诉</el-button>
-                    
-                  </template>
-                </el-table-column> -->
                 <el-table-column v-if="this.role===0"
                   prop="evaScore"
                   label="分数"
                   width="120">
                   <template slot-scope="scope">
                     <span>{{scope.row.evaScore}}</span>
-                    
                       <el-button v-if="scope.row.evaScore!=null" type="text" style="margin-left: 22px;" @click="appeal(scope.row.hwID)">申诉</el-button>
-                    
                   </template>
                 </el-table-column>
-                
                 <el-table-column
                   fixed="right"
                   label="操作"
                   width="180">
+                  <template slot="header" slot-scope="scope" >
+                    <el-button size="mini" v-if="!role==0" type="primary"  @click="publish()" :loading="loading" :disabled="role==0">新建作业</el-button>
+                    <el-button v-if="1<0">{{ scope.className }}</el-button>
+                  </template>
                   <template slot-scope="scope">
-                    <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+                    <el-button @click="handleClick(scope.row)" style="margin-left: 25px;" type="text" size="small">查看</el-button>
                     <el-button v-if="scope.row.isSubmit&&role==0" @click="handleClick_2(scope.row)" type="text" size="small">开始互评</el-button>
                   </template>
                 </el-table-column>
@@ -195,14 +184,28 @@
               </div>
             </div>
           </el-tab-pane>
+
+          <!-- 公告栏 -->
           <el-tab-pane label="公告栏" name="forth">
-            <div v-if="this.role===1" >
-              <el-input v-model="not"></el-input>
-              <el-button @click="sendNotation()">发布</el-button>
+            <div style="box-shadow:0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
+              <div style ="margin-left: 20px;margin-right: 20px;margin-bottom: 0px;">
+                <div v-if="this.role===1" >
+                  <el-input
+                    style ="margin-top : 20px;margin-bottom: 10px;"
+                    type="textarea"
+                    :rows="18"
+                    placeholder="请输入内容"
+                    v-model="not">
+                  </el-input>
+                  <el-button type="primary" style="float:right;margin-bottom: 10px;parent { overflow: hidden }" @click="sendNotation()">发布</el-button>
+                  <div style="clear:both;"></div>
+                </div>
+                <div v-if="this.role===0">
+                  {{ this.not }}
+                </div>
+              </div>
             </div>
-            <div v-if="this.role===0">
-              {{ this.not }}
-            </div>
+            
           </el-tab-pane>
         </el-tabs>
         <el-empty v-if="this.activeName==0" description="看点什么"></el-empty>
@@ -635,7 +638,7 @@
     data() {
       return {
 
-        activeName:'',
+        activeName:'first',
 
         chatAnime : false,
 
