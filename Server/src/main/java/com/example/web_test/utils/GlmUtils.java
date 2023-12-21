@@ -35,7 +35,7 @@ public class GlmUtils implements Runnable{
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8)); // 设置编码为GBK
         String line;
         while ((line = reader.readLine()) != null) {
-//            System.out.println(line);
+            System.out.println(line);
             if(line.startsWith("ChatGLM3 > ")) { return line.substring(11); }
         }
         return null;
@@ -54,6 +54,7 @@ public class GlmUtils implements Runnable{
                 String content = post.getContent();
                 try {
                     content = GlmUtils.getReply(content);
+                    System.out.println("glm回复成功");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

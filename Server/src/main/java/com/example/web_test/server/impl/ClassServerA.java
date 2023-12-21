@@ -33,11 +33,15 @@ public class ClassServerA implements ClassServer {
         List<Map<String, Object>> res = new ArrayList<>();
         for(Classes c : classes) {
             int role = classMapper.getRole(ID, c.getClassID());
+            User teacher = userMapper.getUser(c.getAdminID());
+            int numOfStu = classMapper.getNumOfStu(c.getClassID());
             Map<String, Object> m = new HashMap<>();
             m.put("classID", c.getClassID());
             m.put("className", c.getClassName());
             m.put("introduction", c.getIntroduction());
             m.put("role", role);
+            m.put("teacher", teacher.getName());
+            m.put("numOfStu", numOfStu);
             res.add(m);
         }
         return res;

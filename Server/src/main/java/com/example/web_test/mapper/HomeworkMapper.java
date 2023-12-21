@@ -1,9 +1,6 @@
 package com.example.web_test.mapper;
 
-import com.example.web_test.pojo.Appeal;
-import com.example.web_test.pojo.ClassMember;
-import com.example.web_test.pojo.Homework;
-import com.example.web_test.pojo.HomeworkMember;
+import com.example.web_test.pojo.*;
 import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDateTime;
@@ -78,4 +75,25 @@ public interface HomeworkMapper {
 
     @Select("select * from appeal where hwID=#{hwID} and uID=#{sID}")
     Appeal getAppealByID(int hwID, int sID);
+
+    @Update("update homework set isDplicateCheck=1 where hwID=#{hwID}")
+    void startCheck(int hwID);
+
+    @Insert("insert into duplicaterecord(hwID, sID1, sID2, description, detail) values (#{hwID}, #{sID1}, #{sID2}, #{content}, #{detail})")
+    void addCheckResult(int hwID, int sID1, int sID2, String content, String detail);
+
+    @Delete("delete from duplicaterecord where hwID=#{hwID}")
+    void deleteCheckResult(int hwID);
+
+    @Update("update homework set isDplicateCheck=2 where hwID=#{hwID}")
+    void endDuplicate(int hwID);
+
+    @Select("select isDplicateCheck from homework where hwID=#{hwID}")
+    Integer getDuplicateState(int hwID);
+
+    @Select("select * from duplicaterecord where hwID=#{hwID}")
+    List<DuplicateRecord> getDuplicateInfo(int hwID);
+
+    @Select("select detail from duplicaterecord where hwID=#{hwID} and sID1=#{sID1} and sID2=#{sID2}")
+    String getDuplicateDetail(int hwID, int sID1, int sID2);
 }

@@ -65,9 +65,10 @@ public class PostServerA implements PostServer {
         //todo: 判断是否有权限
 
         List<Post> posts = postMapper.getPosts(cID);
+        System.out.println(posts.size());
         for (Post post : posts) {
             User user = userMapper.getUser(post.getUID());
-            if(user.getRole() != 1 && post.isTeacherOnly()) { continue; } //判断是否可见
+//            if(user.getRole() != 1 && post.isTeacherOnly()) { continue; } //判断是否可见
             Map<String, Object> m = new HashMap<>();
             m.put("pID", post.getPID());
             m.put("uName", user.getName());
@@ -113,7 +114,13 @@ public class PostServerA implements PostServer {
         res.put("uName", user.getName());
         res.put("pName", post.getPName());
         res.put("content", post.getContent());
-        res.put("cTime", post.getCTime());
+        String cTime = post.getCTime().format(DateTimeFormatter.ofPattern("MM-dd HH:mm"));
+        if(post.getCTime().toLocalDate().equals(LocalDate.now())) {
+            cTime = post.getCTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+        } else if(post.getCTime().toLocalDate().equals(LocalDate.now().minusDays(1))) {
+            cTime = post.getCTime().format(DateTimeFormatter.ofPattern("昨天 HH:mm"));
+        }
+        res.put("cTime", cTime);
         res.put("role", user.getRole() == 1 ? "老师" : "学生");
 
         //获取回复
@@ -128,7 +135,13 @@ public class PostServerA implements PostServer {
             m.put("rID", reply.getRID());
             m.put("content", reply.getContent());
             m.put("floor", reply.getFloor());
-            m.put("sendTime", reply.getSendTime());
+            String sendTime = reply.getSendTime().format(DateTimeFormatter.ofPattern("MM-dd HH:mm"));
+            if(reply.getSendTime().toLocalDate().equals(LocalDate.now())) {
+                sendTime = reply.getSendTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+            } else if(reply.getSendTime().toLocalDate().equals(LocalDate.now().minusDays(1))) {
+                sendTime = reply.getSendTime().format(DateTimeFormatter.ofPattern("昨天 HH:mm"));
+            }
+            m.put("sendTime", sendTime);
             res.put("role", user1.getRole() == 1 ? "老师" : "学生");
             rep.add(m);
         }

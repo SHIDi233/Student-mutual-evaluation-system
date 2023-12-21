@@ -1,5 +1,6 @@
 package com.example.web_test.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -71,7 +72,8 @@ public class TextUtils {
         return imageLinks;
     }
 
-    public static void downloadImages(List<String> imageLinks, String targetFolder) {
+    public static List<String> downloadImages(List<String> imageLinks, String targetFolder) {
+        List<String> newPath = new ArrayList<>();
         try {
             for (String imageLink : imageLinks) {
                 URL imageUrl = new URL(imageLink);
@@ -85,12 +87,58 @@ public class TextUtils {
 
                 // Download the image and save it to the target file
                 Files.copy(imageUrl.openStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                newPath.add(targetPath.toString());
 
                 System.out.println("Downloaded: " + fileName);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return newPath;
+    }
+
+    public static void deleteImages(List<String> imageUrls) {
+        for (String imageUrl : imageUrls) {
+            try {
+                // 创建File对象
+                File imageFile = new File(imageUrl);
+
+                // 检查文件是否存在，并删除
+                if (imageFile.exists()) {
+                    if (imageFile.delete()) {
+                        System.out.println("Deleted: " + imageUrl);
+                    } else {
+                        System.err.println("Failed to delete: " + imageUrl);
+                    }
+                } else {
+                    System.out.println("File does not exist: " + imageUrl);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static String extractMainContent(String markdownText) {
+        // Remove images
+        markdownText = markdownText.replaceAll("!\\[.*?\\]\\(.*?\\)", "");
+
+        // Remove code blocks
+        markdownText = markdownText.replaceAll("```[\\s\\S]*?```", "");
+
+        // Remove other markdown elements (e.g., links, emphasis, etc.)
+        markdownText = markdownText.replaceAll("\\[.*?\\]\\(.*?\\)", "");
+        markdownText = markdownText.replaceAll("\\*\\*.*?\\*\\*", "");
+        markdownText = markdownText.replaceAll("\\*.*?\\*", "");
+        markdownText = markdownText.replaceAll("_.*?_", "");
+
+        // Remove HTML tags
+        markdownText = markdownText.replaceAll("<[^>]+>", "");
+
+        // Trim extra whitespace
+        markdownText = markdownText.trim();
+
+        return markdownText;
     }
 
 //    public static void main(String[] args) {

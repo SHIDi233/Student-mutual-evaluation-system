@@ -66,4 +66,7 @@ public interface ClassMapper {
 
     @Select("select * from class_member where classID=#{cID}")
     List<ClassMember> listMembers(int cID);
+
+    @Select("select count(*) from class_member where classID=#{classID}")
+    int getNumOfStu(int classID);
 }

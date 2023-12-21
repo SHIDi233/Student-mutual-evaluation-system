@@ -48,4 +48,14 @@ public interface HomeworkServer {
     List<Integer> getGrades(int uID, int cID);
 
     CompletableFuture<Result> startTask();
+
+    boolean canStartDuplicateCheck(int uID, int hwID);
+
+    void startDuplicateCheck(int hwID);
+
+    int getDuplicateState(int uID, int hwID);
+
+    List<Map<String, Object>> getDuplicateInfo(int uID, int hwID);
+
+    String getDuplicateDetail(int uID, int hwID, int sID1, int sID2);
 }

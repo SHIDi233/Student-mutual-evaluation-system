@@ -3,12 +3,13 @@ package com.example.web_test.server.impl;
 import com.example.web_test.mapper.*;
 import com.example.web_test.pojo.*;
 import com.example.web_test.server.HomeworkServer;
-import com.example.web_test.utils.AnalyseUtils;
+import com.example.web_test.utils.DuplicateCheck.DuplicateCheckUtils;
+import com.example.web_test.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -19,6 +20,15 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 public class HomeworkServerA implements HomeworkServer {
+
+    @Value("${path.duplicateImgPath}")
+    private String imgPath;
+
+    @Value("${threshold.text}")
+    private int textThreshold;
+
+    @Value("${threshold.code}")
+    private int codeThreshold;
 
     @Autowired
     UserMapper userMapper;
@@ -374,7 +384,7 @@ public class HomeworkServerA implements HomeworkServer {
         StringBuilder res = new StringBuilder(classMapper.getClasses(cID).getClassName() + "：");
         for(HomeworkMember homeworkMember : myHomework) {
             EvaluationStat myEvaluation = evaluationMapper.getMyEvaluation(uID, homeworkMember.getHwID());
-            if(evaluationMapper.getEvaluation(homeworkMember.getHwID()).getDdl().isBefore(LocalDateTime.now()) && myEvaluation.getScore() != -1) {
+            if(/*evaluationMapper.getEvaluation(homeworkMember.getHwID()).getDdl().isBefore(LocalDateTime.now()) &&*/myEvaluation != null && myEvaluation.getScore() != -1) {
                 grades.add(myEvaluation.getScore());
                 res.append(myEvaluation.getScore()).append(",");
             }
@@ -413,5 +423,148 @@ public class HomeworkServerA implements HomeworkServer {
         }
         System.out.println("Async task completed");
         return CompletableFuture.completedFuture(Result.success());
+    }
+
+    @Override
+    public boolean canStartDuplicateCheck(int uID, int hwID) {
+        //判断权限
+        Homework homework = homeworkMapper.getHomework(hwID);
+        if(homework.getCreatorID() != uID) { return false; }
+
+        Integer duplicateState = homeworkMapper.getDuplicateState(hwID);
+        return duplicateState != 1;
+    }
+
+    @Override
+    @Async
+    public void startDuplicateCheck(int hwID) {
+        homeworkMapper.startCheck(hwID);
+        homeworkMapper.deleteCheckResult(hwID);
+        //获取所有作业
+        List<HomeworkMember> studentHomeworks = homeworkMapper.getStudentHomeworks(hwID);
+        for(int k = 0; k < studentHomeworks.size(); k++) {
+            for(int l = k + 1; l < studentHomeworks.size(); l++) {
+                HomeworkMember hw1 = studentHomeworks.get(k);
+                HomeworkMember hw2 = studentHomeworks.get(l);
+                if(!hw1.isSubmit() || !hw2.isSubmit()) { continue; }
+//                if(hw1.getUID() == hw2.getUID()) { continue; }
+                StringBuilder result = new StringBuilder();
+                StringBuilder detail = new StringBuilder();
+                User user1 = userMapper.getUser(hw1.getUID());
+                User user2 = userMapper.getUser(hw2.getUID());
+                detail.append("# 学生 " + user1.getName() + " 与学生 " + user2.getName() + " 的查重报告\n\n");
+
+                //文字查重
+                detail.append("## 文字查重\n");
+                String str1 = TextUtils.deleteHead(hw1.getContent());
+                String str2 = TextUtils.deleteHead(hw2.getContent());
+                str1 = TextUtils.extractMainContent(str1);
+                str2 = TextUtils.extractMainContent(str2);
+                if(str1.length() < 50 || str2.length() < 50) { continue; }
+                double rate = DuplicateCheckUtils.getRate(str1, str2);
+                System.out.println("同学" + hw1.getUID() + ", " + hw2.getUID() + "文字查重率为" + rate);
+                if(rate * 100 > textThreshold) {
+                    result.append("文字查重率过高").append("\n");
+                    detail.append("文字查重率过高，为：" + (rate*100) + "%").append("\n\n");
+                } else {
+                    detail.append("无").append("\n\n");
+                }
+
+                //代码查重
+                detail.append("## 代码查重\n");
+                List<String> codes1 = TextUtils.findCode(hw1.getContent());
+                List<String> codes2 = TextUtils.findCode(hw2.getContent());
+                for(int i = 0; i < codes1.size(); i++) {
+                    for(int j = 0; j < codes2.size(); j++) {
+                        int codeRate = DuplicateCheckUtils.checkCode(codes1.get(i), codes2.get(j));
+                        System.out.println("同学" + hw1.getUID() + "第" + i + "个, " + hw2.getUID() + "第" + j + "个代码查重率为" + codeRate);
+                        if(codeRate > codeThreshold) {
+                            result.append("前者第").append(i + 1).append("个代码块和后者第").append(j + 1).append("个代码块查重率过高，查重率为").append(codeRate).append('%').append("\n");
+                            detail.append("**").append("前者第").append(i + 1).append("个代码块和后者第").append(j + 1).append("个代码块查重率过高，查重率为").append(codeRate).append('%').append("**\n\n");
+                            detail.append("**详情如下：**\n\n");
+                            detail.append(user1.getName()).append("的第").append(i + 1).append("个代码块：\n");
+                            detail.append("```\n").append(codes1.get(i)).append("\n```\n");
+                            detail.append(user2.getName()).append("的第").append(j + 1).append("个代码块：\n");
+                            detail.append("```\n").append(codes2.get(j)).append("\n```\n");
+                        }
+                    }
+                }
+
+                //图片查重
+                detail.append("\n## 图片查重\n");
+                List<String> imgsOl1 = TextUtils.extractImageLinks(hw1.getContent());
+                List<String> imgsOl2 = TextUtils.extractImageLinks(hw2.getContent());
+                List<String> imgs1 = TextUtils.downloadImages(TextUtils.extractImageLinks(hw1.getContent()), imgPath);
+                List<String> imgs2 = TextUtils.downloadImages(TextUtils.extractImageLinks(hw2.getContent()), imgPath);
+                for(int i = 0; i < imgs1.size(); i++) {
+                    for(int j = 0; j < imgs2.size(); j++) {
+                        if(DuplicateCheckUtils.checkImg(imgs1.get(i), imgs2.get(j))) {
+                            System.out.println("同学" + hw1.getUID() + "第" + i + "个, " + hw2.getUID() + "第" + j + "个图片重复度高");
+                            result.append("前者第").append(i + 1).append("个图片和后者第").append(j + 1).append("个图片相似度过高").append("\n");
+
+                            detail.append("**").append("前者第").append(i + 1).append("个图片和后者第").append(j + 1).append("个图片被认定为相似").append("**\n\n");
+                            detail.append("**详情如下：**\n\n");
+                            detail.append(user1.getName()).append("的第").append(i + 1).append("个图片：\n");
+                            detail.append("![img1](").append(imgsOl1.get(i)).append(")\n\n");
+                            detail.append(user2.getName()).append("的第").append(j + 1).append("个图片：\n");
+                            detail.append("![img2](").append(imgsOl2.get(j)).append(")\n\n");
+                        }
+                    }
+                }
+                TextUtils.deleteImages(imgs1);
+                TextUtils.deleteImages(imgs2);
+
+                //保存结果
+                if(result.length() != 0) {
+                    homeworkMapper.addCheckResult(hwID, hw1.getUID(), hw2.getUID(), result.toString(), detail.toString());
+                }
+            }
+        }
+        homeworkMapper.endDuplicate(hwID);
+    }
+
+    @Override
+    public int getDuplicateState(int uID, int hwID) {
+        //判断权限
+        Homework homework = homeworkMapper.getHomework(hwID);
+        if(homework.getCreatorID() != uID) { return -1; }
+
+        return homeworkMapper.getDuplicateState(hwID);
+    }
+
+    @Override
+    public List<Map<String, Object>> getDuplicateInfo(int uID, int hwID) {
+        List<Map<String, Object>> res = new ArrayList<>();
+        //判断权限
+        Homework homework = homeworkMapper.getHomework(hwID);
+        if(homework.getCreatorID() != uID) { return res; }
+
+        List<DuplicateRecord> duplicateRecords = homeworkMapper.getDuplicateInfo(hwID);
+        for(DuplicateRecord duplicateRecord : duplicateRecords) {
+            Map<String, Object> m = new HashMap<>();
+            User user1 = userMapper.getUser(duplicateRecord.getSID1());
+            User user2 = userMapper.getUser(duplicateRecord.getSID2());
+            m.put("sID1", duplicateRecord.getSID1());
+            m.put("sID2", duplicateRecord.getSID2());
+            m.put("sName1", user1.getName());
+            m.put("sName2", user2.getName());
+            m.put("content", duplicateRecord.getDescription());
+            res.add(m);
+        }
+
+        return res;
+    }
+
+    @Override
+    public String getDuplicateDetail(int uID, int hwID, int sID1, int sID2) {
+        Homework homework = homeworkMapper.getHomework(hwID);
+        if(homework.getCreatorID() != uID) { return ""; }
+
+        String res = homeworkMapper.getDuplicateDetail(hwID, sID1, sID2);
+        if(res == null) {
+            res = homeworkMapper.getDuplicateDetail(hwID, sID2, sID1);
+            if(res == null) { return ""; }
+        }
+        return res;
     }
 }

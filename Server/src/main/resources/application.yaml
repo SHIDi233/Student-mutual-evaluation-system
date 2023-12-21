@@ -1,3 +1,8 @@
 path:
   sourcePath: 'D:/vue/source/' #资源文件临时保存路径
   headPath: 'D:/vue/head/' #头像临时保存路径
+  duplicateImgPath: 'D:/vue/duplicate' #查重图片的临时文件夹
+
+threshold:
+  text: 70
+  code: 50

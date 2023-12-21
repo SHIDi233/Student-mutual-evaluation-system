@@ -22,5 +22,6 @@ public class Homework {
     private boolean isStartEva;
     private int score;
     private int cID;
+    private int isDplicateCheck;
 
 }

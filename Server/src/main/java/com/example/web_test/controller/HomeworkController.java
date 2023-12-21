@@ -385,4 +385,59 @@ public class HomeworkController {
         return new AsyncResult<>("Task started. Check logs for completion.");
     }
 
+    @PostMapping("/startDuplicateCheck")
+    public Result startDuplicateCheck(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+
+        boolean isOk = homeworkServer.canStartDuplicateCheck(uID, hwID);
+        if(isOk) {
+            homeworkServer.startDuplicateCheck(hwID);
+            return Result.success();
+        }
+        return Result.error("查重正在进行或没有权限");
+    }
+
+    @PostMapping("/getDuplicateState")
+    public Result getDuplicateState(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+
+        int state = homeworkServer.getDuplicateState(uID, hwID);
+        if(state == -1) { return Result.error("您没有执行此操作的权限"); }
+        return Result.success(state);
+    }
+
+    @PostMapping("/getDuplicateInfo")
+    public Result getDuplicateInfo(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+
+        List<Map<String, Object>> res = homeworkServer.getDuplicateInfo(uID, hwID);
+        return Result.success(res);
+    }
+
+    @PostMapping("/getDuplicateDetail")
+    public Result getDuplicateDetail(HttpServletRequest request) {
+        int uID;
+        String jwt = request.getHeader("token");
+        Claims claims = JwtUtils.parseJWT(jwt);
+        uID = (int) claims.get("ID");
+        int hwID = Integer.parseInt(request.getParameter("hwID"));
+        int sID1 = Integer.parseInt(request.getParameter("sID1"));
+        int sID2 = Integer.parseInt(request.getParameter("sID2"));
+        String res = homeworkServer.getDuplicateDetail(uID, hwID, sID1, sID2);
+
+        return Result.success(res);
+    }
+
 }
