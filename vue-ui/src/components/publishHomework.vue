@@ -43,7 +43,7 @@
             
         </div>
         <div style="float: right;">
-            <el-button @click="save">暂存</el-button>
+            <!-- <el-button @click="save">暂存</el-button> -->
             <el-button type="primary" @click="drawer = true">下一步</el-button>
         </div>
         <el-drawer
@@ -191,7 +191,7 @@
                     label="操作"
                     width="120">
                     <template slot="header" slot-scope="scope" >
-                        <el-button @click="check">查重</el-button>
+                        <el-button :disabled="dis" @click="check">查重</el-button>
                         <el-button v-if="1<0">{{ scope.className }}</el-button>
                     </template>
                     <template slot-scope="scope">
@@ -400,6 +400,8 @@
 
             checked:[],
             context:'',
+
+            dis:false,
         }
       },
       created(){
@@ -488,16 +490,24 @@
             if(response.data.data==2){
                 axios.post(restweburl+'getDuplicateInfo', params1).then(response => {
                     this.checked = response.data.data;
+                    this.dis = true;
                 }).catch(error => {
                     alert(error)
                     alert("请求失败")
-                })
+                });
             }
             else if(response.data.data==1){
-                1
+                this.$message({
+                    message: '当前正在进行查重',
+                    type: 'success'
+                });
+                this.dis = true;
             }
             else if(response.data.data==0){
-                1
+                this.$message({
+                    message: '该作业还未查重',
+                    type: 'success'
+                });
             }
         }).catch(error => {
             alert(error)
@@ -721,6 +731,7 @@
         save(){
           var params = new URLSearchParams();
           params.append('hwID',this.$route.params.hwID);
+          params.append('cID',this.$route.params.classID);
           params.append('name',this.hwName);
           params.append('content',this.hwContent);
 

@@ -30,15 +30,15 @@
               </el-form-item>
             </div>
             <div style="float:right;margin-left:30px;">
-              <template>
-                <el-popconfirm style="margin-right:30px;" title="确定删除班级吗" @confirm="handleDelete(scope.row)">
+              <!-- <template> -->
+                <el-popconfirm style="margin-right:30px;" title="确定删除班级吗" @confirm="handleDelete(props.row)">
                   <!-- <el-button slot="reference"  type="text" size="small">删除</el-button> -->
                   <el-button slot="reference"
                     size="mini"
                     type="danger"
                     @click="handleDelete(scope.row)">删除班级</el-button>
                 </el-popconfirm>
-              </template>
+              <!-- </template> -->
             </div>
           </el-form>
         </template>

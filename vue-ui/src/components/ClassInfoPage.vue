@@ -143,8 +143,8 @@
                     <el-button size="mini" v-if="!role==0" type="primary"  @click="publish()" :loading="loading" :disabled="role==0">新建作业</el-button>
                     <el-button v-if="1<0">{{ scope.className }}</el-button>
                   </template>
-                  <template slot-scope="scope">
-                    <el-button @click="handleClick(scope.row)" style="margin-left: 25px;" type="text" size="small">查看</el-button>
+                  <template slot-scope="scope" >
+                    <el-button  @click="handleClick(scope.row)" style="height:100%;margin-left : 25px;" type="text" size="small">查看</el-button>
                     <el-button v-if="scope.row.isSubmit&&role==0" @click="handleClick_2(scope.row)" type="text" size="small">开始互评</el-button>
                   </template>
                 </el-table-column>
@@ -154,7 +154,7 @@
 
           <!-- 成绩分析 -->
           <el-tab-pane v-if="this.role===0" label="成绩分析(测试功能)" name="fourth">
-            <el-tooltip class="item" effect="dark" content="Right Top 提示文字" placement="right-start">
+            <el-tooltip class="item" effect="dark" content="基于ChatGLM3的成绩分析功能，仅用于测试参考" placement="right-start">
               <!-- <el-button size="small" icon="el-icon-info" circle></el-button> -->
               <el-button @click="sendPost()">AI分析</el-button>
             </el-tooltip>
@@ -390,6 +390,7 @@
         })
         const reader = response.body.getReader()
         let a=1;let b=2
+        let k=0
         while (b>a) {
           if (this.isStopped) break
           const { done, value } = await reader.read()
@@ -397,7 +398,9 @@
             this.chatAnime = false;
             break;
           }
-          this.response += new TextDecoder().decode(value)
+          k+=1;
+          if(k>1)
+            this.response += new TextDecoder().decode(value)
         }
       },
 
